@@ -1,2 +1,3 @@
-# ShelterApp
-Hayvan barınakları için web uygulaması
+# Hayvan Barınağı Uygulaması
+
+#### Bu projenin çıkış noktası, son dönemde gündem olan hayvan barınaklarındaki denetim eksikliğidir. Bu uygulama tasarlanırken sığınakların kontrolünde gerekli olabilecek tüm bilgilere yer verilmeye çalışılmıştır. Barınaktaki kedi ve köpeklerin hastalık geçmişi, aşı geçmişi ve testleri gibi bilgilerin yanı sıra barınağın aşı ve mama stok bilgilerinin görüntülendiği bir sistem oluşturulmuştur. Bu bilgileri görüntüleme yetkisine sahip genel kullanıcılar ve tüm CRUD işlemlerini gerçekleştirme yetkisine sahip yöneticilerin, barınakların kontrolünde aktif rol alması amaçlanmaktadır. Ayrıca barınak sahipleri tarafından da kullanılabilen bu uygulama onlar için bir stok kontrol uygulaması görevi de görmektedir.
