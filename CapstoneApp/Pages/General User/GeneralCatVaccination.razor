@@ -1,0 +1,51 @@
+﻿@page "/generalCatVaccinations/{catId:int}"
+@using CapstoneApp.Models;
+@using CapstoneApp.Services.Interfaces;
+@inject ICatServices CatService
+
+@if (vaccinations == null)
+{
+    <p><em>Yükleniyor...</em></p>
+}
+else
+{
+    <div>
+        <button class="btn btn-default" onClick="history.back();"><i class="oi oi-arrow-left"></i>              Geri</button>
+        <button class="btn btn-default" onClick="window.location.reload();" style="margin-left:1000px"><i class="oi oi-reload"></i>              Sayfayı Yenile</button>
+    </div>
+    <br />
+    <p>@cat.ChipCode çip kodlu kedinin olduğu tüm aşılar (@vaccinations.Count kayıt) görüntüleniyor.</p>
+    <table class="table">
+        <thead>
+            <tr>
+                <th style="font-size:14px">Aşının ID'si</th>
+                <th style="font-size:14px">Aşının Adı</th>
+                <th style="font-size:14px">Aşıyı Olma Tarihi</th>
+                <th style="font-size:14px">Aşının Geçerliliğinin Dolduğu Tarih</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var vaccination in vaccinations)
+            {
+                <tr>
+                    <td style="font-size:14px">@vaccination.CatVaccinationId</td>
+                    <td style="font-size:14px">@vaccination.Name</td>
+                    <td style="font-size:14px">@vaccination.VaccinationDate</td>
+                    <td style="font-size:14px">@vaccination.VaccinationExpiryDate</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+@code {
+    [Parameter]
+    public int catId { get; set; }
+    private List<CatVaccination> vaccinations;
+    private Cat cat;
+
+    protected override async Task OnInitializedAsync()
+    {
+        vaccinations = await CatService.GetVaccinations(catId);
+        cat = await CatService.GetCatById(catId);
+    }
+}

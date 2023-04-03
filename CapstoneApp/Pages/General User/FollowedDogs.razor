@@ -1,0 +1,142 @@
+﻿@page "/followedDogs"
+@using CapstoneApp.Models;
+@using CapstoneApp.Services.Interfaces;
+@inject IDogServices DogService
+@inject IShelterServices ShelterService
+@inject IFollowServices FollowService
+@inject NavigationManager NavManager
+
+@if (dogs == null)
+{
+    <p><em>Yükleniyor...</em></p>
+}
+else
+{
+    <div>
+        <button class="btn btn-default" onClick="history.back();"><i class="oi oi-arrow-left"></i>              Geri</button>
+        <button class="btn btn-default" onClick="window.location.reload();" style="margin-left:1000px"><i class="oi oi-reload"></i>              Sayfayı Yenile</button>
+    </div>
+    <br />
+    <p>Takip ettiğiniz tüm köpekler (@dogs.Count köpek) görüntüleniyor.</p>
+    <table class="table">
+        <thead>
+            <tr>
+                <th style="font-size:14px">Köpeğin ID'si</th>
+                <th style="font-size:14px">Çip Kodu</th>
+                <th style="font-size:14px">Cinsi</th>
+                <th style="font-size:14px">Cinsiyeti</th>
+                <th style="font-size:14px">Doğum Tarihi</th>
+                <th style="font-size:14px">Barınağa Getirildiği Tarih</th>
+                <th style="font-size:14px">Sahiplenildiği Tarih (varsa eğer)</th>
+                <th style="font-size:14px">Doğurganlık Durumu</th>
+                <th style="font-size:14px">Hamilelik</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var dog in dogs)
+            {
+                <tr>
+                    <td style="font-size:14px">@dog.DogId</td>
+                    <td style="font-size:14px">@dog.ChipCode</td>
+                    <td style="font-size:14px">@dog.Breed</td>
+                    <td style="font-size:14px">@dog.Gender</td>
+                    <td style="font-size:14px">@dog.Birthday</td>
+                    <td style="font-size:14px">@dog.BroughtToShelter</td>
+                    <td style="font-size:14px">@dog.OwningDate</td>
+                    <td style="font-size:14px">@dog.FertilityStatus</td>
+                    <td style="font-size:14px">@dog.Pregnancy</td>
+                    <td>
+                        <button class="btn btn-primary" @onclick="(() => OpenShelter(dog))"><i class="oi oi-info"></i></button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (openDetail)
+{
+    <div class="modal" tabindex="-1" style="display:block" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">@dog.ChipCode Çip Kodlu Köpek</h3>
+                    <button type="button" class="close"
+                        @onclick="CloseDetailPopup">
+                        <span aria-hidden="true">X</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div style="text-align:start">
+                        <button class="btn btn-danger" @onclick="UnfollowDog">Takibi Bırak</button>
+                    </div>
+                    <div style="text-align:end">
+                        <button class="btn btn-link" @onclick="SeeVaccination">Aşı Geçmişini Görüntüle</button>
+                        <br />
+                        <button class="btn btn-link" @onclick="SeeTesting">Test Sonuçlarını Görüntüle</button>
+                        <br />
+                        <button class="btn btn-link" @onclick="SeeDiseaseHistory">Hastalık Geçmişini Görüntüle</button>
+                    </div>&nbsp;
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+@code {
+    private List<Dog> dogs;
+    private Dog dog;
+    private bool openDetail;
+
+    protected override async Task OnInitializedAsync()
+    {
+        dogs = await FollowService.GetDogFollowsByUserId(Setting.UserBasicDetail.UserId);
+    }
+    void OpenShelter(Dog dog)
+    {
+        this.dog = dog;
+        openDetail = true;
+    }
+    void CloseDetailPopup()
+    {
+        openDetail = false;
+    }
+    void SeeVaccination()
+    {
+        int dogId = dog.DogId;
+        NavManager.NavigateTo($"/generalDogVaccinations/{dogId}");
+    }
+    void SeeTesting()
+    {
+        int dogId = dog.DogId;
+        NavManager.NavigateTo($"/generalDogTestings/{dogId}");
+    }
+    void SeeDiseaseHistory()
+    {
+        int dogId = dog.DogId;
+        NavManager.NavigateTo($"/generalDogDiseaseHistories/{dogId}");
+    }
+    async void UnfollowDog()
+    {
+        List<Follow> list = await FollowService.GetFollows();
+        bool result = false;
+        foreach (var item in list)
+        {
+            if (item.UserId == Setting.UserBasicDetail.UserId && item.AnimalType == AnimalType.Köpek && item.AnimalId == dog.DogId)
+            {
+                result = await FollowService.DeleteFollow(item);
+            }
+        }
+        if (result == true)
+        {
+            await App.Current.MainPage.DisplayAlert("Başarılı", "Köpek takipten çıkıldı!", "Ok");
+            await OnInitializedAsync();
+        }
+        else
+        {
+            await App.Current.MainPage.DisplayAlert("Hata", "Köpek takibi kaldırılırken bir hata meydana geldi!", "Ok");
+        }
+    }
+}

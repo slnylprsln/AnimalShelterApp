@@ -1,0 +1,53 @@
+﻿@using Presentation.Models;
+@inject NavigationManager NavManager;
+
+<div class="top-row ps-3 navbar navbar-dark">
+	<div class="container-fluid">
+		<a class="navbar-brand" href=""></a>
+		<button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+			<span class="navbar-toggler-icon"></span>
+		</button>
+	</div>
+</div>
+
+<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
+	<nav class="flex-column">
+		<div class="nav-item px-3">
+			<NavLink class="nav-link" href="adminDashboard" Match="NavLinkMatch.All">
+				<span class="oi oi-home" aria-hidden="true"></span> Anasayfa
+			</NavLink>
+		</div>
+		<div class="nav-item px-3">
+			<NavLink class="nav-link" href="users">
+				<span class="oi oi-person" aria-hidden="true"></span> Kullanıcılar
+			</NavLink>
+		</div>
+		<div class="nav-item px-3">
+			<NavLink class="nav-link" href="sheltersAdminSide">
+				<span class="oi oi-map" aria-hidden="true"></span> Barınaklar
+			</NavLink>
+		</div>
+		<div class="nav-item px-3">
+			<NavLink class="nav-link" href="#" @onclick="SignOut">
+				<span class="oi oi-account-logout" aria-hidden="true"></span> Çıkış Yap
+			</NavLink>
+		</div>
+	</nav>
+</div>
+
+@code {
+	private bool collapseNavMenu = true;
+
+	private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+	private void ToggleNavMenu()
+	{
+		collapseNavMenu = !collapseNavMenu;
+	}
+	private void SignOut()
+	{
+		SecureStorage.RemoveAll();
+		Setting.UserBasicDetail = null;
+		NavManager.NavigateTo("/login");
+	}
+}

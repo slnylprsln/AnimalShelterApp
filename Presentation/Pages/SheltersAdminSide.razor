@@ -1,0 +1,382 @@
+﻿@page "/sheltersAdminSide"
+
+@using Presentation.Data
+@using Presentation.Models;
+@using Presentation.Services.Interfaces;
+@inject IShelterServices ShelterService
+@inject IUserServices UserService
+@inject NavigationManager NavManager
+
+@if (shelters == null)
+{
+		<p><em>Yükleniyor...</em></p>
+}
+else
+{
+		<div style="margin:0px,100px,100px,100px">
+			<button class="btn btn-default" onClick="window.location.reload();"><i class="oi oi-reload"></i>              Reload</button>
+		</div>
+		<br/>
+		<div>
+			<button class="btn btn-success" @onclick="AddShelter" style="border:unset; color:aliceblue; width:160px; height:40px">Yeni Barınak Ekle</button>
+		</div>
+		<br />
+		<p>Sistemde kayıtlı olan tüm barınaklar (@shelters.Count kayıt) görüntüleniyor.</p>
+		<table class="table">
+			<thead>
+				<tr>
+					<th style="font-size:14px">İsim</th>
+					<th style="font-size:14px">Barınak Sahibi (ID)</th>
+					<th style="font-size:14px">Sertifika No.</th>
+					<th style="font-size:14px">Şehir</th>
+					<th style="font-size:14px">Adres</th>
+					<th style="font-size:14px">Açılış Tarihi</th>
+					<th style="font-size:14px">Kedi Maması Stok</th>
+					<th style="font-size:14px">Köpek Maması Stok</th>
+					<th style="font-size:14px">Kuduz Aşısı Stok</th>
+					<th style="font-size:14px">Kombinasyon Aşısı Stok</th>
+					<th style="font-size:14px">Parvovirüs Aşısı Stok</th>
+					<th style="font-size:14px">Distemper Aşısı Stok</th>
+					<th style="font-size:14px">Hepatit Aşısı Stok</th>
+					<th></th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+			@foreach (var shelter in shelters)
+			{
+						<tr>
+							<td style="font-size:14px">@shelter.Name</td>
+							<td style="font-size:14px">@shelter.UserId</td>
+							<td style="font-size:14px">@shelter.CertificateNo</td>
+							<td style="font-size:14px">@shelter.City</td>
+							<td style="font-size:14px">@shelter.Address</td>
+							<td style="font-size:14px">@shelter.OpeningDate</td>
+							<td style="font-size:14px">@shelter.CatFoodStock</td>
+							<td style="font-size:14px">@shelter.DogFoodStock</td>
+							<td style="font-size:14px">@shelter.RabiesVaccineStock</td>
+							<td style="font-size:14px">@shelter.CombinationVaccineStock</td>
+							<td style="font-size:14px">@shelter.ParvovirusVaccineStock</td>
+							<td style="font-size:14px">@shelter.DistemperVaccineStock</td>
+							<td style="font-size:14px">@shelter.HepatitisVaccineStock</td>
+							<td>
+								<button class="btn btn-primary" @onclick="(() => EditShelter(shelter))"><i class="oi oi-pencil"></i></button>
+							</td>
+							<td>
+								<button class="btn btn-danger" @onclick="(() => DeleteShelter(shelter))"><i class="oi oi-circle-x"></i></button>
+							</td>
+						</tr>
+			}
+			</tbody>
+		</table>
+}
+
+@if (ShowAddPopup)
+{
+		<div class="modal" tabindex="-1" style="display:block" role="dialog">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h3 class="modal-title">Yeni Barınak Ekle</h3>
+						<button type="button" class="close"
+						@onclick="CloseAddPopup">
+							<span aria-hidden="true">X</span>
+						</button>
+					</div>
+					<div class="modal-body">
+						<h6 style="font-size:14px">İsim</h6>
+						<input class="form-control" type="text" @bind="newShelter.Name" />
+						<br />
+						<h6 style="font-size:14px">Barınak Sahibi (ID)</h6>
+						<input class="form-control" type="number" @bind="newShelter.UserId" />
+						<br />
+						<h6 style="font-size:14px">Sertifika No.</h6>
+						<input class="form-control" type="text" @bind="newShelter.CertificateNo" />
+						<br />
+						<h6 style="font-size:14px">Şehir</h6>
+						<input class="form-control" type="text" @bind="newShelter.City" />
+						<br />
+						<h6 style="font-size:14px">Adres</h6>
+						<input class="form-control" type="text" @bind="newShelter.Address" />
+						<br />
+						<h6 style="font-size:14px">Açılış Tarihi</h6>
+						<input class="form-control" type="text" @bind="newShelter.OpeningDate" />
+						<br />
+						<h6 style="font-size:14px">Kedi Maması Stok</h6>
+						<input class="form-control" type="number" @bind="newShelter.CatFoodStock" />
+						<br />
+						<h6 style="font-size:14px">Köpek Maması Stok</h6>
+						<input class="form-control" type="number" @bind="newShelter.DogFoodStock" />
+						<br />
+						<h6 style="font-size:14px">Kuduz Aşısı Stok</h6>
+						<input class="form-control" type="number" @bind="newShelter.RabiesVaccineStock" />
+						<br />
+						<h6 style="font-size:14px">Kombinasyon Aşısı Stok</h6>
+						<input class="form-control" type="number" @bind="newShelter.CombinationVaccineStock" />
+						<br />
+						<h6 style="font-size:14px">Parvovirüs Aşısı Stok</h6>
+						<input class="form-control" type="number" @bind="newShelter.ParvovirusVaccineStock" />
+						<br />
+						<h6 style="font-size:14px">Distemper Aşısı Stok</h6>
+						<input class="form-control" type="number" @bind="newShelter.DistemperVaccineStock" />
+						<br />
+						<h6 style="font-size:14px">Hepatit Aşısı Stok</h6>
+						<input class="form-control" type="number" @bind="newShelter.HepatitisVaccineStock" />
+						<br />
+						<button class="btn btn-success"
+						@onclick="SaveShelterAdd" >
+							Ekle
+						</button>&nbsp;
+					</div>
+				</div>
+			</div>
+		</div>
+}
+
+@if (ShowEditPopup)
+{
+		<div class="modal" tabindex="-1" style="display:block" role="dialog">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h3 class="modal-title">Barınağı Düzenle</h3>
+						<button type="button" class="close"
+						@onclick="CloseEditPopup">
+							<span aria-hidden="true">X</span>
+						</button>
+						</div>
+						<div class="modal-body">
+							<h6 style="font-size:14px">İsim</h6>
+							<input class="form-control" type="text" @bind="newShelter.Name" />
+							<br />
+							<h6 style="font-size:14px">Barınak Sahibi (ID)</h6>
+							<input class="form-control" type="number" @bind="newShelter.UserId" />
+							<br />
+							<h6 style="font-size:14px">Sertifika No.</h6>
+							<input class="form-control" type="text" @bind="newShelter.CertificateNo" />
+							<br />
+							<h6 style="font-size:14px">Şehir</h6>
+							<input class="form-control" type="text" @bind="newShelter.City" />
+							<br />
+							<h6 style="font-size:14px">Adres</h6>
+							<input class="form-control" type="text" @bind="newShelter.Address" />
+							<br />
+							<h6 style="font-size:14px">Açılış Tarihi</h6>
+							<input class="form-control" type="text" @bind="newShelter.OpeningDate" />
+							<br />
+							<h6 style="font-size:14px">Kedi Maması Stok</h6>
+							<input class="form-control" type="number" @bind="newShelter.CatFoodStock" />
+							<br />
+							<h6 style="font-size:14px">Köpek Maması Stok</h6>
+							<input class="form-control" type="number" @bind="newShelter.DogFoodStock" />
+							<br />
+							<h6 style="font-size:14px">Kuduz Aşısı Stok</h6>
+							<input class="form-control" type="number" @bind="newShelter.RabiesVaccineStock" />
+							<br />
+							<h6 style="font-size:14px">Kombinasyon Aşısı Stok</h6>
+							<input class="form-control" type="number" @bind="newShelter.CombinationVaccineStock" />
+							<br />
+							<h6 style="font-size:14px">Parvovirüs Aşısı Stok</h6>
+							<input class="form-control" type="number" @bind="newShelter.ParvovirusVaccineStock" />
+							<br />
+							<h6 style="font-size:14px">Distemper Aşısı Stok</h6>
+							<input class="form-control" type="number" @bind="newShelter.DistemperVaccineStock" />
+							<br />
+							<h6 style="font-size:14px">Hepatit Aşısı Stok</h6>
+							<input class="form-control" type="number" @bind="newShelter.HepatitisVaccineStock" />
+							<br />
+							<button class="btn btn-success"
+							@onclick="SaveShelterEdit">
+								Güncelle
+							</button>
+							<br />
+							<div style="text-align:end">
+								<button class="btn btn-link"
+									@onclick="SeeCats">
+									Barınaktaki Kedileri Gör
+								</button>
+								<br />
+								<button class="btn btn-link"
+									@onclick="SeeDogs">
+									Barınaktaki Köpekleri Gör
+								</button>
+								<br />
+								<button class="btn btn-link"
+									@onclick="SeeShelterOwner">
+									Barınak Sahibinin Bilgilerini Gör
+								</button>
+							</div>&nbsp;
+						</div>
+				</div>
+			</div>
+		</div>
+}
+
+@if (ShowOwnerPopup)
+{
+	<div class="modal" tabindex="-1" style="display:block" role="dialog">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h3 class="modal-title">Barınak Sahibi</h3>
+					<button type="button" class="close"
+						@onclick="CloseOwnerPopup">
+						<span aria-hidden="true">X</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<h6 style="font-weight:700; white-space: pre-line">Kullanıcı Adı:</h6>
+					<h6>@shelterOwner.Username</h6>
+					<h6 style="font-weight:700; white-space: pre-line">İsim:</h6>
+					<h6>@shelterOwner.Name</h6>
+					<h6 style="font-weight:700; white-space: pre-line">Soyisim:</h6>
+					<h6>@shelterOwner.Surname</h6>
+					<h6 style="font-weight:700; white-space: pre-line">Şehir:</h6>
+					<h6>@shelterOwner.City</h6>
+					<h6 style="font-weight:700; white-space: pre-line">Adres:</h6>
+					<h6>@shelterOwner.Address</h6>
+					<h6 style="font-weight:700; white-space: pre-line">Telefon No:</h6>
+					<h6>@shelterOwner.PhoneNumber</h6>
+					<h6 style="font-weight:700; white-space: pre-line">Email:</h6>
+					<h6>@shelterOwner.Email</h6>
+					<h6 style="font-weight:700; white-space: pre-line">Rol ID:</h6>
+					<h6>@shelterOwner.RoleId</h6>
+					&nbsp;
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+@code {
+	private List<Shelter> shelters;
+	bool ShowEditPopup = false;
+	bool ShowAddPopup = false;
+	bool ShowOwnerPopup = false;
+	bool ShowCatsPopup = false;
+	bool ShowDogsPopup = false;
+	Shelter newShelter = new Shelter();
+	User shelterOwner;
+	Shelter bf = new Shelter();
+	int role;
+
+	protected override async Task OnInitializedAsync()
+	{
+		shelters = await ShelterService.GetShelters();
+	}
+	void AddShelter()
+	{
+		newShelter = new Shelter();
+		newShelter.ShelterId = 0;
+		ShowAddPopup = true;
+	}
+	async void EditShelter(Shelter shelter)
+	{
+		newShelter = shelter;
+		ShowEditPopup = true;
+		bf.Name = newShelter.Name;
+		bf.UserId = newShelter.UserId;
+		bf.CertificateNo = newShelter.CertificateNo;
+		bf.City = newShelter.City;
+		bf.Address = newShelter.Address;
+		bf.OpeningDate = newShelter.OpeningDate;
+		bf.CatFoodStock = newShelter.CatFoodStock;
+		bf.DogFoodStock = newShelter.DogFoodStock;
+		bf.RabiesVaccineStock = newShelter.RabiesVaccineStock;
+		bf.CombinationVaccineStock = newShelter.CombinationVaccineStock;
+		bf.ParvovirusVaccineStock = newShelter.ParvovirusVaccineStock;
+		bf.DistemperVaccineStock = newShelter.DistemperVaccineStock;
+		bf.HepatitisVaccineStock = newShelter.HepatitisVaccineStock;
+		shelterOwner = await UserService.GetUserById((int)newShelter.UserId);
+	}
+	void CloseAddPopup()
+	{
+		// Close the Popup
+		ShowAddPopup = false;
+	}
+	void CloseEditPopup()
+	{
+		// Close the Popup
+		ShowEditPopup = false;
+	}
+	void CloseOwnerPopup()
+	{
+		// Close the Popup
+		ShowOwnerPopup = false;
+	}
+	async void SaveShelterAdd()
+	{
+		Shelter shelter = new Shelter();
+		shelter.Name = newShelter.Name;
+		shelter.UserId = newShelter.UserId;
+		shelter.CertificateNo = newShelter.CertificateNo;
+		shelter.City = newShelter.City;
+		shelter.Address = newShelter.Address;
+		shelter.OpeningDate = newShelter.OpeningDate;
+		shelter.CatFoodStock = newShelter.CatFoodStock;
+		shelter.DogFoodStock = newShelter.DogFoodStock;
+		shelter.RabiesVaccineStock = newShelter.RabiesVaccineStock;
+		shelter.CombinationVaccineStock = newShelter.CombinationVaccineStock;
+		shelter.ParvovirusVaccineStock = newShelter.ParvovirusVaccineStock;
+		shelter.DistemperVaccineStock = newShelter.DistemperVaccineStock;
+		shelter.HepatitisVaccineStock = newShelter.HepatitisVaccineStock;
+		bool adding = await ShelterService.AddShelter(shelter);
+		if (adding == true)
+		{
+			await App.Current.MainPage.DisplayAlert("Başarılı", "Barınak kaydı alındı!", "Ok");
+			shelters.Add(shelter);
+			await OnInitializedAsync();
+		}
+		else
+		{
+			await App.Current.MainPage.DisplayAlert("Hata", "Kayıt sırasında bir problem meydana geldi!", "Ok");
+		}
+	}
+	async void SaveShelterEdit()
+	{
+		bool update = await ShelterService.EditShelter(newShelter);
+		if (update == true)
+		{
+			await App.Current.MainPage.DisplayAlert("Başarılı", "Barınak güncellendi!", "Ok");
+			await OnInitializedAsync();
+		}
+		else
+		{
+			await App.Current.MainPage.DisplayAlert("Hata", "Güncelleme sırasında bir problem meydana geldi!", "Ok");
+		}
+	}
+	async void DeleteShelter(Shelter shelter)
+	{
+		bool answer = await App.Current.MainPage.DisplayAlert("", "Barınağı silmek istediğinizden emin misiniz?", "Evet", "Hayır");
+		if (answer == true)
+		{
+			bool delete = await ShelterService.DeleteShelter(shelter);
+			if (delete == true)
+			{
+				await App.Current.MainPage.DisplayAlert("Başarılı", "Barınak silindi! Güncel listeyi görmek için lütfen sayfayı yenileyiniz.", "Ok");
+				shelters.Remove(shelter);
+			}
+			else
+			{
+				await App.Current.MainPage.DisplayAlert("Hata", "Silme sırasında bir problem meydana geldi!", "Ok");
+			}
+		}
+	}
+	async void SeeShelterOwner()
+	{
+		ShowEditPopup = false;
+		ShowOwnerPopup = true;
+	}
+	void SeeCats()
+	{
+		ShowEditPopup = false;
+		int? shelterId = newShelter.ShelterId;
+		NavManager.NavigateTo($"/shelterCats/{shelterId}");
+	}
+	async void SeeDogs()
+	{
+		ShowEditPopup = false;
+		int? shelterId = newShelter.ShelterId;
+		NavManager.NavigateTo($"/shelterDogs/{shelterId}");
+	}
+}

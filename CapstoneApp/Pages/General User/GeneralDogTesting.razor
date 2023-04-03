@@ -1,0 +1,51 @@
+﻿@page "/generalDogTestings/{dogId:int}"
+@using CapstoneApp.Models;
+@using CapstoneApp.Services.Interfaces;
+@inject IDogServices DogService
+
+@if (testings == null)
+{
+	<p><em>Yükleniyor...</em></p>
+}
+@if (testings != null)
+{
+	<div>
+		<button class="btn btn-default" onClick="history.back();"><i class="oi oi-arrow-left"></i>              Geri</button>
+		<button class="btn btn-default" onClick="window.location.reload();" style="margin-left:1000px"><i class="oi oi-reload"></i>              Sayfayı Yenile</button>
+	</div>
+	<br />
+	<p>@dog.ChipCode çip kodlu köpeğin olduğu tüm testler (@testings.Count kayıt) görüntüleniyor.</p>
+	<table class="table">
+		<thead>
+			<tr>
+				<th style="font-size:14px">Testin ID'si</th>
+				<th style="font-size:14px">Testin Adı</th>
+				<th style="font-size:14px">Test Olma Tarihi</th>
+				<th style="font-size:14px">Test Sonucu</th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var testing in testings)
+			{
+				<tr>
+					<td style="font-size:14px">@testing.DogTestingId</td>
+					<td style="font-size:14px">@testing.Name</td>
+					<td style="font-size:14px">@testing.TestDate</td>
+					<td style="font-size:14px">@testing.TestResult</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+}
+@code {
+	[Parameter]
+	public int dogId { get; set; }
+	private List<DogTesting> testings;
+	private Dog dog;
+
+	protected override async Task OnInitializedAsync()
+	{
+		testings = await DogService.GetTestings(dogId);
+		dog = await DogService.GetDogById(dogId);
+	}
+}

@@ -1,0 +1,241 @@
+﻿@page "/catVaccinations/{catId:int}"
+@using CapstoneApp.Models;
+@using CapstoneApp.Services.Interfaces;
+@inject ICatServices CatService
+
+@if (vaccinations == null)
+{
+    <p><em>Yükleniyor...</em></p>
+}
+else
+{
+    <div>
+        <button class="btn btn-default" onClick="history.back();"><i class="oi oi-arrow-left"></i>              Geri</button>
+        <button class="btn btn-default" onClick="window.location.reload();" style="margin-left:1000px"><i class="oi oi-reload"></i>              Sayfayı Yenile</button>
+    </div>
+    <br />
+    <div>
+        <button class="btn btn-success" @onclick="AddVaccination" style="border:unset; color:aliceblue; width:200px; height:40px">Yeni Aşı Kaydı Ekle</button>
+    </div>
+    <br />
+    <p>@cat.ChipCode çip kodlu kedinin olduğu tüm aşılar (@vaccinations.Count kayıt) görüntüleniyor.</p>
+    <table class="table">
+        <thead>
+            <tr>
+                <th style="font-size:14px">Aşının ID'si</th>
+                <th style="font-size:14px">Aşının Adı</th>
+                <th style="font-size:14px">Aşıyı Olma Tarihi</th>
+                <th style="font-size:14px">Aşının Geçerliliğinin Dolduğu Tarih</th>
+                <th></th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var vaccination in vaccinations)
+            {
+                <tr>
+                    <td style="font-size:14px">@vaccination.CatVaccinationId</td>
+                    <td style="font-size:14px">@vaccination.Name</td>
+                    <td style="font-size:14px">@vaccination.VaccinationDate</td>
+                    <td style="font-size:14px">@vaccination.VaccinationExpiryDate</td>
+
+                    <td>
+                        <button class="btn btn-primary" @onclick="(() => EditVaccination(vaccination))"><i class="oi oi-pencil"></i></button>
+                    </td>
+                    <td>
+                        <button class="btn btn-danger" @onclick="(() => DeleteVaccination(vaccination))"><i class="oi oi-circle-x"></i></button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (ShowEmptyPage)
+{
+    <div>
+        <button class="btn btn-default" onClick="history.back();"><i class="oi oi-arrow-left"></i>              Geri</button>
+        <button class="btn btn-default" onClick="window.location.reload();" style="margin-left:1000px"><i class="oi oi-reload"></i>              Sayfayı Yenile</button>
+    </div>
+    <br />
+    <div>
+        <button class="btn btn-success" @onclick="AddVaccination" style="border:unset; color:aliceblue; width:200px; height:40px">Yeni Aşı Kaydı Ekle</button>
+    </div>
+    <br />
+    <p>@cat.ChipCode çip kodlu kedinin olduğu tüm aşılar (0 kayıt) görüntüleniyor.</p>
+    <table class="table">
+        <thead>
+            <tr>
+                <th style="font-size:14px">Aşının Adı</th>
+                <th style="font-size:14px">Aşıyı Olma Tarihi</th>
+                <th style="font-size:14px">Aşının Geçerliliğinin Dolduğu Tarih</th>
+                <th></th>
+                <th></th>
+            </tr>
+        </thead>
+    </table>
+}
+
+@if (ShowAddPopup)
+{
+    <div class="modal" tabindex="-1" style="display:block" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Yeni Aşı Kaydı Ekle</h3>
+                    <button type="button" class="close"
+                        @onclick="CloseAddPopup">
+                        <span aria-hidden="true">X</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <h6 style="font-size:14px">Aşının Adı</h6>
+                    <input class="form-control" type="text" @bind="newCatVaccination.Name" />
+                    <br />
+                    <h6 style="font-size:14px">Aşıyı Olma Tarihi</h6>
+                    <input class="form-control" type="text" @bind="newCatVaccination.VaccinationDate" />
+                    <br />
+                    <h6 style="font-size:14px">Aşının Geçerliliğinin Dolduğu Tarih</h6>
+                    <input class="form-control" type="text" @bind="newCatVaccination.VaccinationExpiryDate" />
+                    <br />
+                    <button class="btn btn-success"
+                        @onclick="SaveVaccinationAdd">
+                        Ekle
+                    </button>&nbsp;
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (ShowEditPopup)
+{
+    <div class="modal" tabindex="-1" style="display:block" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Aşı Kaydını Düzenle</h3>
+                    <button type="button" class="close"
+                        @onclick="CloseEditPopup">
+                        <span aria-hidden="true">X</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <h6 style="font-size:14px">Aşının Adı</h6>
+                    <input class="form-control" type="text" @bind="newCatVaccination.Name" />
+                    <br />
+                    <h6 style="font-size:14px">Aşıyı Olma Tarihi</h6>
+                    <input class="form-control" type="text" @bind="newCatVaccination.VaccinationDate" />
+                    <br />
+                    <h6 style="font-size:14px">Aşının Geçerliliğinin Dolduğu Tarih</h6>
+                    <input class="form-control" type="text" @bind="newCatVaccination.VaccinationExpiryDate" />
+                    <br />
+                    <button class="btn btn-success"
+                        @onclick="SaveVaccinationEdit">
+                        Güncelle
+                    </button>&nbsp;
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int catId { get; set; }
+
+    private List<CatVaccination> vaccinations;
+    private CatVaccination newCatVaccination;
+    private CatVaccination bf = new CatVaccination();
+    private Cat cat;
+    bool ShowEmptyPage = false;
+    bool ShowEditPopup = false;
+    bool ShowAddPopup = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        vaccinations = await CatService.GetVaccinations(catId);
+        cat = await CatService.GetCatById(catId);
+        if (vaccinations == null)
+        {
+            ShowEmptyPage = true;
+        }
+    }
+    void AddVaccination()
+    {
+        newCatVaccination = new CatVaccination();
+        ShowAddPopup = true;
+    }
+    async void EditVaccination(CatVaccination catVaccination)
+    {
+        newCatVaccination = catVaccination;
+        ShowEditPopup = true;
+        bf.Name = newCatVaccination.Name;
+        bf.CatId = catId;
+        bf.VaccinationDate = newCatVaccination.VaccinationDate;
+        bf.VaccinationExpiryDate = newCatVaccination.VaccinationExpiryDate;
+    }
+    void CloseAddPopup()
+    {
+        // Close the Popup
+        ShowAddPopup = false;
+    }
+    void CloseEditPopup()
+    {
+        // Close the Popup
+        ShowEditPopup = false;
+    }
+    async void SaveVaccinationAdd()
+    {
+        CatVaccination vacc = new CatVaccination();
+        vacc.Name = newCatVaccination.Name;
+        vacc.VaccinationDate = newCatVaccination.VaccinationDate;
+        vacc.VaccinationExpiryDate = newCatVaccination.VaccinationExpiryDate;
+        vacc.CatId = catId;
+        bool adding = await CatService.AddVaccination(vacc);
+        if (adding == true)
+        {
+            await App.Current.MainPage.DisplayAlert("Başarılı", "Aşı kaydı alındı!", "Ok");
+            vaccinations.Add(vacc);
+            ShowEmptyPage = false;
+            await OnInitializedAsync();
+        }
+        else
+        {
+            await App.Current.MainPage.DisplayAlert("Hata", "Kayıt sırasında bir problem meydana geldi!", "Ok");
+            await OnInitializedAsync();
+        }
+    }
+    async void SaveVaccinationEdit()
+    {
+        bool update = await CatService.EditVaccination(newCatVaccination);
+        if (update == true)
+        {
+            await App.Current.MainPage.DisplayAlert("Başarılı", "Aşı kaydı güncellendi!", "Ok");
+            await OnInitializedAsync();
+        }
+        else
+        {
+            await App.Current.MainPage.DisplayAlert("Hata", "Güncelleme sırasında bir problem meydana geldi!", "Ok");
+            await OnInitializedAsync();
+        }
+    }
+    async void DeleteVaccination(CatVaccination catVaccination)
+    {
+        bool answer = await App.Current.MainPage.DisplayAlert("", "Aşı kaydını silmek istediğinizden emin misiniz?", "Evet", "Hayır");
+        if (answer == true)
+        {
+            bool delete = await CatService.DeleteVaccination(catVaccination);
+            if (delete == true)
+            {
+                await App.Current.MainPage.DisplayAlert("Başarılı", "Aşı kaydı silindi! Güncel listeyi görmek için lütfen sayfayı yenileyiniz.", "Ok");
+                vaccinations.Remove(catVaccination);
+            }
+            else
+            {
+                await App.Current.MainPage.DisplayAlert("Hata", "Silme sırasında bir problem meydana geldi!", "Ok");
+                await OnInitializedAsync();
+            }
+        }
+    }
+}

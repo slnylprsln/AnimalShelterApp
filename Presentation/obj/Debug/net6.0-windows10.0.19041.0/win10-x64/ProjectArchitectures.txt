@@ -1,0 +1,1 @@
+C:\Users\alpar\source\repos\Capstone\Presentation\Presentation.csproj;x64

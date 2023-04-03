@@ -1,0 +1,188 @@
+﻿@page "/generalShelters"
+@using CapstoneApp.Models;
+@using CapstoneApp.Services.Interfaces;
+@inject IShelterServices ShelterService
+@inject IDonationServices DonationService
+@inject NavigationManager NavManager
+
+@if (shelters == null)
+{
+    <p><em>Yükleniyor...</em></p>
+}
+else
+{
+    <div style="margin:0px,100px,100px,100px">
+        <button class="btn btn-default" onClick="window.location.reload();"><i class="oi oi-reload"></i>              Sayfayı Yenile</button>
+    </div>
+    <br />
+    <p>Sistemde kayıtlı olan tüm barınaklar (@shelters.Count kayıt) görüntüleniyor.</p>
+    <table class="table">
+        <thead>
+            <tr>
+                <th style="font-size:14px">Barınak ID'si</th>
+                <th style="font-size:14px">İsim</th>
+                <th style="font-size:14px">Sertifika No.</th>
+                <th style="font-size:14px">Şehir</th>
+                <th style="font-size:14px">Adres</th>
+                <th style="font-size:14px">Açılış Tarihi</th>
+                <th style="font-size:14px">Kedi Maması Stok</th>
+                <th style="font-size:14px">Köpek Maması Stok</th>
+                <th style="font-size:14px">Kuduz Aşısı Stok</th>
+                <th style="font-size:14px">Kombinasyon Aşısı Stok</th>
+                <th style="font-size:14px">Parvovirüs Aşısı Stok</th>
+                <th style="font-size:14px">Distemper Aşısı Stok</th>
+                <th style="font-size:14px">Hepatit Aşısı Stok</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var shelter in shelters)
+            {
+                <tr>
+                    <td style="font-size:14px">@shelter.ShelterId</td>
+                    <td style="font-size:14px">@shelter.Name</td>
+                    <td style="font-size:14px">@shelter.CertificateNo</td>
+                    <td style="font-size:14px">@shelter.City</td>
+                    <td style="font-size:14px">@shelter.Address</td>
+                    <td style="font-size:14px">@shelter.OpeningDate</td>
+                    <td style="font-size:14px">@shelter.CatFoodStock</td>
+                    <td style="font-size:14px">@shelter.DogFoodStock</td>
+                    <td style="font-size:14px">@shelter.RabiesVaccineStock</td>
+                    <td style="font-size:14px">@shelter.CombinationVaccineStock</td>
+                    <td style="font-size:14px">@shelter.ParvovirusVaccineStock</td>
+                    <td style="font-size:14px">@shelter.DistemperVaccineStock</td>
+                    <td style="font-size:14px">@shelter.HepatitisVaccineStock</td>
+                    <td>
+                        <button class="btn btn-primary" @onclick="(() => OpenShelter(shelter))"><i class="oi oi-info"></i></button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (openDetail)
+{
+    <div class="modal" tabindex="-1" style="display:block" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Barınak @sh.Name</h3>
+                    <button type="button" class="close"
+                        @onclick="CloseDetailPopup">
+                        <span aria-hidden="true">X</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div style="text-align:end">
+                        <button class="btn btn-link" @onclick="SeeCats">Barınaktaki Kedileri Gör</button>
+                        <br />
+                        <button class="btn btn-link" @onclick="SeeDogs">Barınaktaki Köpekleri Gör</button>
+                        <br />
+                    </div>
+                    <div style="text-align:start">
+                        <button class="btn btn-success" @onclick="OpenDonation">Bağış Yap</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (donationScreen)
+{
+    <div class="modal" tabindex="-1" style="display:block" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Bağış</h3>
+                    <button type="button" class="close"
+                        @onclick="CloseDonationPopup">
+                        <span aria-hidden="true">X</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div style="text-align:start">
+                        <label>Bağış Türü</label>
+                        <EditForm Model="donation">
+                            <InputSelect @bind-Value="donation.Type">
+                                @foreach (var value in Enum.GetValues(typeof(CapstoneApp.Models.Type)))
+                                {
+                                    <option>@value</option>
+                                }
+                            </InputSelect>
+                        </EditForm>
+                        <br />
+                        <label>Bağış Miktarı</label>
+                        <input type="number" @bind-value="@donation.Amount" class="form-control" />
+                        <br />
+                        <button class="btn btn-success" @onclick="Donate">Bağışla</button>
+                    </div>&nbsp;
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+
+    Donation donation = new Donation();
+
+    private List<Shelter> shelters;
+    private Shelter sh;
+    private bool openDetail;
+    private bool donationScreen;
+
+    protected override async Task OnInitializedAsync()
+    {
+        shelters = await ShelterService.GetShelters();
+    }
+    void OpenShelter(Shelter shelter)
+    {
+        sh = shelter;
+        openDetail = true;
+    }
+    void CloseDetailPopup()
+    {
+        openDetail = false;
+    }
+    void CloseDonationPopup()
+    {
+        donationScreen = false;
+    }
+    void SeeCats()
+    {
+        int? shelterId = sh.ShelterId;
+        NavManager.NavigateTo($"generalCats/{shelterId}");
+    }
+    void SeeDogs()
+    {
+        int? shelterId = sh.ShelterId;
+        NavManager.NavigateTo($"generalDogs/{shelterId}");
+    }
+    void OpenDonation()
+    {
+        openDetail = false;
+        donationScreen = true;
+    } 
+    async void Donate()
+    {
+        Donation n = new Donation();
+        n.Amount = donation.Amount;
+        n.ShelterId = sh.ShelterId;
+        n.Type = donation.Type;
+        n.UserId = Setting.UserBasicDetail.UserId;
+        n.VerifiedYet = true;
+        var result = await DonationService.AddDonation(n);
+        if (result == true)
+        {
+            await App.Current.MainPage.DisplayAlert("Başarılı", "Bağış talebiniz yönetim tarafından değerlendirilmek üzere alındı!", "Ok");
+            donationScreen = false;
+        }
+        else
+        {
+            await App.Current.MainPage.DisplayAlert("Hata", "Bağış talebiniz sırasında bir hata oluştu!", "Ok");
+        }
+
+    }
+}

@@ -1,0 +1,266 @@
+﻿@page "/users"
+
+@using CapstoneApp.Data
+@using CapstoneApp.Models;
+@using CapstoneApp.Services.Interfaces;
+@inject IUserServices UserService
+@inject NavigationManager NavManager;
+
+
+@if (users == null)
+{
+	<p><em>Yükleniyor...</em></p>
+}
+else
+{
+	<div style="margin:0px,100px,100px,100px">
+		<button class="btn btn-default" onClick="window.location.reload();" style="margin-left:1000px"><i class="oi oi-reload"></i>              Sayfayı Yenile</button>
+	</div>
+	<br/>
+	<div>
+		<button class="btn btn-success" @onclick="AddUser" style="border:unset; color:aliceblue; width:160px; height:40px">Yeni Kullanıcı Ekle</button>
+	</div>
+	<br />
+	<p>Sistemde kayıtlı olan tüm kullanıcılar (@users.Count kayıt) görüntüleniyor.</p>
+	<table class="table">
+		<thead>
+			<tr>
+				<th style="font-size:14px">Kullanıcı ID'si</th>
+				<th style="font-size:14px">Kullanıcı Adı</th>
+				<th style="font-size:14px">İsim</th>
+				<th style="font-size:14px">Soyisim</th>
+				<th style="font-size:14px">Şehir</th>
+				<th style="font-size:14px">Adres</th>
+				<th style="font-size:14px">Telefon No.</th>
+				<th style="font-size:14px">Email</th>
+				<th style="font-size:14px">Rol ID</th>
+				<th></th>
+				<th></th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var user in users)
+			{
+				<tr>
+					<td style="font-size:14px">@user.UserId</td>
+					<td style="font-size:14px">@user.Username</td>
+					<td style="font-size:14px">@user.Name</td>
+					<td style="font-size:14px">@user.Surname</td>
+					<td style="font-size:14px">@user.City</td>
+					<td style="font-size:14px">@user.Address</td>
+					<td style="font-size:14px">@user.PhoneNumber</td>
+					<td style="font-size:14px">@user.Email</td>
+					<td style="font-size:14px">@user.RoleId</td>
+					<td>
+						<button class="btn btn-primary" @onclick="(() => EditUser(user))"><i class="oi oi-pencil"></i></button>
+					</td>
+					<td>
+						<button class="btn btn-danger" @onclick="(() => DeleteUser(user))"><i class="oi oi-circle-x"></i></button>
+					</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+}
+
+@if (ShowAddPopup)
+{
+	<div class="modal" tabindex="-1" style="display:block" role="dialog">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h3 class="modal-title">Yeni Kullanıcı Ekle</h3>
+					<button type="button" class="close"
+						@onclick="CloseAddPopup">
+						<span aria-hidden="true">X</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<h6 style="font-size:14px">İsim</h6>
+					<input class="form-control" type="text" @bind="newUser.Name" />
+					<br />
+					<h6 style="font-size:14px">Soyisim</h6>
+					<input class="form-control" type="text" @bind="newUser.Surname" />
+					<br />
+					<h6 style="font-size:14px">Kullanıcı Adı</h6>
+					<input class="form-control" type="text" @bind="newUser.Username" />
+					<br />
+					<h6 style="font-size:14px">Rol ID (1: Admin, 2: Barınak Sahibi, 3: Genel Kullanıcı)</h6>
+					<input class="form-control" type="number" @bind="newUser.RoleId" />
+					<br />
+					<h6 style="font-size:14px">Şifre</h6>
+					<input class="form-control" type="password" @bind="newUser.Password" />
+					<br />
+					<h6 style="font-size:14px">Şehir</h6>
+					<input class="form-control" type="text" @bind="newUser.City" />
+					<br/>
+					<h6 style="font-size:14px">Adres</h6>
+					<input class="form-control" type="text" @bind="newUser.Address" />
+					<br/>
+					<h6 style="font-size:14px">Telefon Numarası</h6>
+					<input class="form-control" type="text" @bind="newUser.PhoneNumber" />
+					<br/>
+					<h6 style="font-size:14px">Email</h6>
+					<input class="form-control" type="email" @bind="newUser.Email" />
+					<br />
+					<button class="btn btn-success"
+						@onclick="SaveUserAdd" >
+						Ekle
+					</button>&nbsp;
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+@if (ShowEditPopup)
+{
+	<div class="modal" tabindex="-1" style="display:block" role="dialog">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h3 class="modal-title">Kullanıcıyı Düzenle</h3>
+					<button type="button" class="close"
+						@onclick="CloseEditPopup">
+						<span aria-hidden="true">X</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<h6 style="font-size:14px">İsim</h6>
+					<input class="form-control" type="text" @bind="newUser.Name" />
+					<br />
+					<h6 style="font-size:14px">Soyisim</h6>
+					<input class="form-control" type="text" @bind="newUser.Surname" />
+					<br />
+					<h6 style="font-size:14px">Kullanıcı Adı</h6>
+					<input class="form-control" type="text" @bind="newUser.Username" />
+					<br />
+					<h6 style="font-size:14px">Rol ID (1: Admin, 2: Barınak Sahibi, 3: Genel Kullanıcı)</h6>
+					<input class="form-control" type="number" @bind="newUser.RoleId" />
+					<br />
+					<h6 style="font-size:14px">Şifre</h6>
+					<input class="form-control" type="password" @bind="newUser.Password" />
+					<br />
+					<h6 style="font-size:14px">Şehir</h6>
+					<input class="form-control" type="text" @bind="newUser.City" />
+					<br/>
+					<h6 style="font-size:14px">Adres</h6>
+					<input class="form-control" type="text" @bind="newUser.Address" />
+					<br/>
+					<h6 style="font-size:14px">Telefon Numarası</h6>
+					<input class="form-control" type="text" @bind="newUser.PhoneNumber" />
+					<br/>
+					<h6 style="font-size:14px">Email</h6>
+					<input class="form-control" type="email" @bind="newUser.Email" />
+					<br />
+					<button class="btn btn-success"
+						@onclick="SaveUserEdit">
+						Güncelle
+					</button>&nbsp;
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+@code {
+	private List<User> users;
+	bool ShowEditPopup = false;
+	bool ShowAddPopup = false;
+	User newUser = new User();
+	User bf = new User();
+	int role;
+
+	protected override async Task OnInitializedAsync()
+	{
+		users = await UserService.GetUsers();
+	}
+
+	void AddUser()
+	{
+		newUser = new User();
+		ShowAddPopup = true;
+	}
+	void EditUser(User user)
+	{
+		newUser = user;
+		ShowEditPopup = true;
+		bf.Username = newUser.Username;
+		bf.Name = newUser.Name;
+		bf.Surname = newUser.Surname;
+		bf.Address = newUser.Address;
+		bf.PhoneNumber = newUser.PhoneNumber;
+		bf.City = newUser.City;
+		bf.RoleId = newUser.RoleId;
+		bf.Email = newUser.Email;
+		bf.Password = newUser.Password.ToString();
+	}
+	void CloseAddPopup()
+	{
+		// Close the Popup
+		ShowAddPopup = false;
+	}
+	void CloseEditPopup()
+	{
+		// Close the Popup
+		ShowEditPopup = false;
+	}
+	async void SaveUserAdd()
+	{
+		User user = new User();
+		user.Username = newUser.Username;
+		user.Name = newUser.Name;
+		user.Surname = newUser.Surname;
+		user.Address = newUser.Address;
+		user.PhoneNumber = newUser.PhoneNumber;
+		user.City = newUser.City;
+		user.RoleId = newUser.RoleId;
+		user.Email = newUser.Email;
+		user.Password = newUser.Password.ToString();
+		bool adding = await UserService.AddUser(user);
+		if (adding == true)
+		{
+			await App.Current.MainPage.DisplayAlert("Başarılı", "Kullanıcı kaydı alındı! Lütfen sayfayı yenileyiniz.", "Ok");
+			users.Add(user);
+		}
+		else
+		{
+			await App.Current.MainPage.DisplayAlert("Hata", "Kayıt sırasında bir problem meydana geldi!", "Ok");
+		}
+	}
+	async void SaveUserEdit()
+	{
+		bool update = await UserService.EditUser(newUser);
+		if (update == true)
+		{
+			await App.Current.MainPage.DisplayAlert("Başarılı", "Kullanıcı güncellendi!", "Ok");
+		}
+		else
+		{
+			await App.Current.MainPage.DisplayAlert("Hata", "Güncelleme sırasında bir problem meydana geldi! Lütfen sayfayı yenileyiniz.", "Ok");
+		}
+	}
+	async void DeleteUser(User user)
+	{
+		bool answer = await App.Current.MainPage.DisplayAlert("", "Kullanıcıyı silmek istediğinizden emin misiniz?", "Evet", "Hayır");
+
+		if (answer == true)
+		{
+			bool delete = await UserService.DeleteUser(user);
+			if (delete == true)
+			{
+				users.Remove(user);
+				await App.Current.MainPage.DisplayAlert("Başarılı", "Kullanıcı silindi! Güncel listeyi görmek için lütfen sayfayı yenileyiniz.", "Ok");
+				NavManager.NavigateTo("/users");
+			}
+			else
+			{
+				await App.Current.MainPage.DisplayAlert("Hata", "Silme sırasında bir problem meydana geldi!", "Ok");
+			}
+		}
+	}
+	void SaveAndRefresh()
+	{
+		
+	}
+}

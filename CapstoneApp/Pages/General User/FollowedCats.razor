@@ -1,0 +1,142 @@
+﻿@page "/followedCats"
+@using CapstoneApp.Models;
+@using CapstoneApp.Services.Interfaces;
+@inject ICatServices CatService
+@inject IShelterServices ShelterService
+@inject IFollowServices FollowService
+@inject NavigationManager NavManager
+
+@if (cats == null)
+{
+    <p><em>Yükleniyor...</em></p>
+}
+else
+{
+    <div>
+        <button class="btn btn-default" onClick="history.back();"><i class="oi oi-arrow-left"></i>              Geri</button>
+        <button class="btn btn-default" onClick="window.location.reload();" style="margin-left:1000px"><i class="oi oi-reload"></i>              Sayfayı Yenile</button>
+    </div>
+    <br />
+    <p>Takip ettiğiniz tüm kediler (@cats.Count kedi) görüntüleniyor.</p>
+    <table class="table">
+        <thead>
+            <tr>
+                <th style="font-size:14px">Kedinin ID'si</th>
+                <th style="font-size:14px">Çip Kodu</th>
+                <th style="font-size:14px">Cinsi</th>
+                <th style="font-size:14px">Cinsiyeti</th>
+                <th style="font-size:14px">Doğum Tarihi</th>
+                <th style="font-size:14px">Barınağa Getirildiği Tarih</th>
+                <th style="font-size:14px">Sahiplenildiği Tarih (varsa eğer)</th>
+                <th style="font-size:14px">Doğurganlık Durumu</th>
+                <th style="font-size:14px">Hamilelik</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var cat in cats)
+            {
+                <tr>
+                    <td style="font-size:14px">@cat.CatId</td>
+                    <td style="font-size:14px">@cat.ChipCode</td>
+                    <td style="font-size:14px">@cat.Breed</td>
+                    <td style="font-size:14px">@cat.Gender</td>
+                    <td style="font-size:14px">@cat.Birthday</td>
+                    <td style="font-size:14px">@cat.BroughtToShelter</td>
+                    <td style="font-size:14px">@cat.OwningDate</td>
+                    <td style="font-size:14px">@cat.FertilityStatus</td>
+                    <td style="font-size:14px">@cat.Pregnancy</td>
+                    <td>
+                        <button class="btn btn-primary" @onclick="(() => OpenShelter(cat))"><i class="oi oi-info"></i></button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (openDetail)
+{
+    <div class="modal" tabindex="-1" style="display:block" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">@cat.ChipCode Çip Kodlu Kedi</h3>
+                    <button type="button" class="close"
+                        @onclick="CloseDetailPopup">
+                        <span aria-hidden="true">X</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div style="text-align:start">
+                        <button class="btn btn-danger" @onclick="UnfollowCat">Takibi Bırak</button>
+                    </div>
+                    <div style="text-align:end">
+                        <button class="btn btn-link" @onclick="SeeVaccination">Aşı Geçmişini Görüntüle</button>
+                        <br />
+                        <button class="btn btn-link" @onclick="SeeTesting">Test Sonuçlarını Görüntüle</button>
+                        <br />
+                        <button class="btn btn-link" @onclick="SeeDiseaseHistory">Hastalık Geçmişini Görüntüle</button>
+                    </div>&nbsp;
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+@code {
+    private List<Cat> cats;
+    private Cat cat;
+    private bool openDetail;
+
+    protected override async Task OnInitializedAsync()
+    {
+        cats = await FollowService.GetCatFollowsByUserId(Setting.UserBasicDetail.UserId);
+    }
+    void OpenShelter(Cat cat)
+    {
+        this.cat = cat;
+        openDetail = true;
+    }
+    void CloseDetailPopup()
+    {
+        openDetail = false;
+    }
+    void SeeVaccination()
+    {
+        int catId = cat.CatId;
+        NavManager.NavigateTo($"/generalCatVaccinations/{catId}");
+    }
+    void SeeTesting()
+    {
+        int catId = cat.CatId;
+        NavManager.NavigateTo($"/generalCatTestings/{catId}");
+    }
+    void SeeDiseaseHistory()
+    {
+        int catId = cat.CatId;
+        NavManager.NavigateTo($"/generalCatDiseaseHistories/{catId}");
+    }
+    async void UnfollowCat()
+    {
+        List<Follow> list = await FollowService.GetFollows();
+        bool result = false;
+        foreach (var item in list)
+        {
+            if (item.UserId == Setting.UserBasicDetail.UserId && item.AnimalType == AnimalType.Kedi && item.AnimalId == cat.CatId)
+            {
+                result = await FollowService.DeleteFollow(item);
+            }
+        }
+        if (result == true)
+        {
+            await App.Current.MainPage.DisplayAlert("Başarılı", "Kedi takipten çıkıldı!", "Ok");
+            await OnInitializedAsync();
+        }
+        else
+        {
+            await App.Current.MainPage.DisplayAlert("Hata", "Kedi takibi kaldırılırken bir hata meydana geldi!", "Ok");
+        }
+    }
+}

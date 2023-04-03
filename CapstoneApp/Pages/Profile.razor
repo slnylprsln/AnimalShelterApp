@@ -1,0 +1,45 @@
+﻿@page "/profile"
+@using CapstoneApp.Models;
+@using CapstoneApp.Services;
+@using CapstoneApp.Services.Interfaces;
+@inject IUserServices UserService
+
+<div>
+	<button class="btn btn-default" onClick="window.location.reload();" style="margin-left:1000px"><i class="oi oi-reload"></i>              Sayfayı Yenile</button>
+</div>
+
+<label style="font-size:14px">İsim</label>
+<input class="form-control" type="text" style="width:300px" @bind="@Setting.UserBasicDetail.Name" />
+<label style="font-size:14px">Soyisim</label>
+<input class="form-control" type="text" style="width:300px" @bind="@Setting.UserBasicDetail.Surname" />
+<label style="font-size:14px">Kullanıcı Adı</label>
+<input class="form-control" type="text" style="width:300px" @bind="@Setting.UserBasicDetail.Username" />
+<label style="font-size:14px">Şifre</label>
+<input class="form-control" type="password" style="width:300px" @bind="@Setting.UserBasicDetail.Password" />
+<label style="font-size:14px">Şehir</label>
+<input class="form-control" type="text" style="width:300px" @bind="@Setting.UserBasicDetail.City" />
+<label style="font-size:14px">Adres</label>
+<input class="form-control" type="text" style="width:300px" @bind="@Setting.UserBasicDetail.Address" />
+<label style="font-size:14px">Telefon Numarası</label>
+<input class="form-control" type="number" style="width:300px" @bind="@Setting.UserBasicDetail.PhoneNumber" />
+<label style="font-size:14px">Email</label>
+<input class="form-control" type="email" style="width:300px" @bind="@Setting.UserBasicDetail.Email" />
+<br />
+<button class="btn btn-success" style="width:300px" @onclick="SaveProfileEdit">Güncelle</button>
+
+
+@code {
+	async void SaveProfileEdit()
+	{
+		bool update = await UserService.EditUser(Setting.UserBasicDetail.UserId);
+		if (update == true)
+		{
+			await App.Current.MainPage.DisplayAlert("Başarılı", "Profil güncellendi!", "Ok");
+			await OnInitializedAsync();
+		}
+		else
+		{
+			await App.Current.MainPage.DisplayAlert("Hata", "Güncelleme sırasında bir problem meydana geldi!", "Ok");
+		}
+	}
+}

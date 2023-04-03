@@ -1,0 +1,241 @@
+﻿@page "/dogDiseaseHistories/{dogId:int}"
+@using CapstoneApp.Models;
+@using CapstoneApp.Services.Interfaces;
+@inject IDogServices DogService
+
+@if (diseaseHistories == null)
+{
+	<p><em>Yükleniyor...</em></p>
+}
+else
+{
+	<div>
+		<button class="btn btn-default" onClick="history.back();"><i class="oi oi-arrow-left"></i>              Geri</button>
+		<button class="btn btn-default" onClick="window.location.reload();" style="margin-left:1000px"><i class="oi oi-reload"></i>              Sayfayı Yenile</button>
+	</div>
+	<br />
+	<div>
+		<button class="btn btn-success" @onclick="AddDiseaseHistory" style="border:unset; color:aliceblue; width:200px; height:40px">Yeni Hastalık Kaydı Ekle</button>
+	</div>
+	<br />
+	<p>@dog.ChipCode çip kodlu köpeğin geçirdiği tüm hastalıklar (@diseaseHistories.Count kayıt) görüntüleniyor.</p>
+	<table class="table">
+		<thead>
+			<tr>
+				<th style="font-size:14px">Hastalık ID'si</th>
+				<th style="font-size:14px">Hastalık Adı</th>
+				<th style="font-size:14px">Başlangıç Tarihi</th>
+				<th style="font-size:14px">Bitiş Tarihi</th>
+				<th></th>
+				<th></th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var diseaseHistory in diseaseHistories)
+			{
+				<tr>
+					<td style="font-size:14px">@diseaseHistory.DogDiseaseHistoryId</td>
+					<td style="font-size:14px">@diseaseHistory.DiseaseName</td>
+					<td style="font-size:14px">@diseaseHistory.StartDate</td>
+					<td style="font-size:14px">@diseaseHistory.EndDate</td>
+
+					<td>
+						<button class="btn btn-primary" @onclick="(() => EditDiseaseHistory(diseaseHistory))"><i class="oi oi-pencil"></i></button>
+					</td>
+					<td>
+						<button class="btn btn-danger" @onclick="(() => DeleteDiseaseHistory(diseaseHistory))"><i class="oi oi-circle-x"></i></button>
+					</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+}
+
+@if (ShowEmptyPage)
+{
+	<div>
+		<button class="btn btn-default" onClick="history.back();"><i class="oi oi-arrow-left"></i>              Geri</button>
+		<button class="btn btn-default" onClick="window.location.reload();" style="margin-left:1000px"><i class="oi oi-reload"></i>              Sayfayı Yenile</button>
+	</div>
+	<br />
+	<div>
+		<button class="btn btn-success" @onclick="AddDiseaseHistory" style="border:unset; color:aliceblue; width:200px; height:40px">Yeni Hastalık Kaydı Ekle</button>
+	</div>
+	<br />
+	<p>@dog.ChipCode çip kodlu köpeğin geçirdiği tüm hastalıklar (0 kayıt) görüntüleniyor.</p>
+	<table class="table">
+		<thead>
+			<tr>
+				<th style="font-size:14px">Hastalık Adı</th>
+				<th style="font-size:14px">Başlangıç Tarihi</th>
+				<th style="font-size:14px">Bitiş Tarihi</th>
+				<th></th>
+				<th></th>
+			</tr>
+		</thead>
+	</table>
+}
+
+@if (ShowAddPopup)
+{
+	<div class="modal" tabindex="-1" style="display:block" role="dialog">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h3 class="modal-title">Yeni Hastalık Kaydı Ekle</h3>
+					<button type="button" class="close"
+						@onclick="CloseAddPopup">
+						<span aria-hidden="true">X</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<h6 style="font-size:14px">Hastalık Adı</h6>
+					<input class="form-control" type="text" @bind="newDogDiseaseHistory.DiseaseName" />
+					<br />
+					<h6 style="font-size:14px">Başlangıç Tarihi</h6>
+					<input class="form-control" type="date" @bind="newDogDiseaseHistory.StartDate" />
+					<br />
+					<h6 style="font-size:14px">Bitiş Tarihi</h6>
+					<input class="form-control" type="date" @bind="newDogDiseaseHistory.EndDate" />
+					<br />
+					<button class="btn btn-success"
+						@onclick="SaveDiseaseHistoryAdd">
+						Ekle
+					</button>&nbsp;
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+@if (ShowEditPopup)
+{
+	<div class="modal" tabindex="-1" style="display:block" role="dialog">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h3 class="modal-title">Hastalık Kaydını Düzenle</h3>
+					<button type="button" class="close"
+						@onclick="CloseEditPopup">
+						<span aria-hidden="true">X</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<h6 style="font-size:14px">Hastalık Adı</h6>
+					<input class="form-control" type="text" @bind="newDogDiseaseHistory.DiseaseName" />
+					<br />
+					<h6 style="font-size:14px">Başlangıç Tarihi</h6>
+					<input class="form-control" type="date" @bind="newDogDiseaseHistory.StartDate" />
+					<br />
+					<h6 style="font-size:14px">Bitiş Tarihi</h6>
+					<input class="form-control" type="date" @bind="newDogDiseaseHistory.EndDate" />
+					<br />
+					<button class="btn btn-success"
+						@onclick="SaveDiseaseHistoryEdit">
+						Güncelle
+					</button>&nbsp;
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+@code {
+	[Parameter]
+	public int dogId { get; set; }
+
+	private List<DogDiseaseHistory> diseaseHistories;
+	private DogDiseaseHistory newDogDiseaseHistory;
+	private DogDiseaseHistory bf = new DogDiseaseHistory();
+	private Dog dog;
+	bool ShowEmptyPage = false;
+	bool ShowEditPopup = false;
+	bool ShowAddPopup = false;
+
+	protected override async Task OnInitializedAsync()
+	{
+		diseaseHistories = await DogService.GetDiseaseHistory(dogId);
+		dog = await DogService.GetDogById(dogId);
+		if (diseaseHistories == null)
+		{
+			ShowEmptyPage = true;
+		}
+	}
+	void AddDiseaseHistory()
+	{
+		newDogDiseaseHistory = new DogDiseaseHistory();
+		ShowAddPopup = true;
+	}
+	async void EditDiseaseHistory(DogDiseaseHistory dogDiseaseHistory)
+	{
+		newDogDiseaseHistory = dogDiseaseHistory;
+		ShowEditPopup = true;
+		bf.DiseaseName = newDogDiseaseHistory.DiseaseName;
+		bf.DogId = dogId;
+		bf.StartDate = newDogDiseaseHistory.StartDate;
+		bf.EndDate = newDogDiseaseHistory.EndDate;
+	}
+	void CloseAddPopup()
+	{
+		// Close the Popup
+		ShowAddPopup = false;
+	}
+	void CloseEditPopup()
+	{
+		// Close the Popup
+		ShowEditPopup = false;
+	}
+	async void SaveDiseaseHistoryAdd()
+	{
+		DogDiseaseHistory vacc = new DogDiseaseHistory();
+		vacc.DiseaseName = newDogDiseaseHistory.DiseaseName;
+		vacc.StartDate = newDogDiseaseHistory.StartDate;
+		vacc.EndDate = newDogDiseaseHistory.EndDate;
+		vacc.DogId = dogId;
+		bool adding = await DogService.AddDiseaseHistory(vacc);
+		if (adding == true)
+		{
+			await App.Current.MainPage.DisplayAlert("Başarılı", "Hastalık kaydı alındı!", "Ok");
+			diseaseHistories.Add(vacc);
+			ShowEmptyPage = false;
+			await OnInitializedAsync();
+		}
+		else
+		{
+			await App.Current.MainPage.DisplayAlert("Hata", "Kayıt sırasında bir problem meydana geldi!", "Ok");
+			await OnInitializedAsync();
+		}
+	}
+	async void SaveDiseaseHistoryEdit()
+	{
+		bool update = await DogService.EditDiseaseHistory(newDogDiseaseHistory);
+		if (update == true)
+		{
+			await App.Current.MainPage.DisplayAlert("Başarılı", "Hastalık kaydı güncellendi!", "Ok");
+			await OnInitializedAsync();
+		}
+		else
+		{
+			await App.Current.MainPage.DisplayAlert("Hata", "Güncelleme sırasında bir problem meydana geldi!", "Ok");
+			await OnInitializedAsync();
+		}
+	}
+	async void DeleteDiseaseHistory(DogDiseaseHistory dogDiseaseHistory)
+	{
+		bool answer = await App.Current.MainPage.DisplayAlert("", "Hastalık kaydını silmek istediğinizden emin misiniz?", "Evet", "Hayır");
+		if (answer == true)
+		{
+			bool delete = await DogService.DeleteDiseaseHistory(dogDiseaseHistory);
+			if (delete == true)
+			{
+				await App.Current.MainPage.DisplayAlert("Başarılı", "Hastalık kaydı silindi! Güncel listeyi görmek için lütfen sayfayı yenileyiniz.", "Ok");
+				diseaseHistories.Remove(dogDiseaseHistory);
+			}
+			else
+			{
+				await App.Current.MainPage.DisplayAlert("Hata", "Silme sırasında bir problem meydana geldi!", "Ok");
+				await OnInitializedAsync();
+			}
+		}
+	}
+}

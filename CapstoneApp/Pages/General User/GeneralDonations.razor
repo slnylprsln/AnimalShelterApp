@@ -1,0 +1,55 @@
+﻿@page "/generalDonations"
+
+@using CapstoneApp.Models;
+@using CapstoneApp.Services.Interfaces;
+@inject IDonationServices DonationService
+@inject IShelterServices ShelterService
+@inject IUserServices UserService
+
+@if (donations == null)
+{
+    <p><em>Yükleniyor...</em></p>
+}
+else
+{
+    <div style="margin:0px,100px,100px,100px">
+        <button class="btn btn-default" onClick="window.location.reload();"><i class="oi oi-reload"></i>              Sayfayı Yenile</button>
+    </div>
+    <br />
+    <p>Sistemdeki tüm bağışlarınız (@donations.Count kayıt) görüntüleniyor.</p>
+    <table class="table">
+        <thead>
+            <tr>
+                <th style="font-size:14px">Bağışın ID'si</th>
+                <th style="font-size:14px">Bağışın Yapıldığı Barınak (ID)</th>
+                <th style="font-size:14px">Bağış Tipi</th>
+                <th style="font-size:14px">Bağış Miktarı (Adet)</th>
+                <th style="font-size:14px">Onay Sürecinde mi?</th>
+                <th style="font-size:14px">Onaylandı mı?</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var donation in donations)
+            {
+                <tr>
+                    <td style="font-size:14px">@donation.DonationId</td>
+                    <td style="font-size:14px">@donation.ShelterId</td>
+                    <td style="font-size:14px">@donation.Type</td>
+                    <td style="font-size:14px">@donation.Amount</td>
+                    <td style="font-size:14px">@donation.VerifiedYet</td>
+                    <td style="font-size:14px">@donation.Verification</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Donation> donations;
+    private Donation newDonation;
+
+    protected override async Task OnInitializedAsync()
+    {
+        donations = await DonationService.GetDonationsByUserId(Setting.UserBasicDetail.UserId);
+    }
+}

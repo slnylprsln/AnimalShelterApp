@@ -1,0 +1,14 @@
+C:\Users\alpar\source\repos\Capstone\ErrorHandling\bin\Debug\net6.0\ErrorHandling.deps.json
+C:\Users\alpar\source\repos\Capstone\ErrorHandling\bin\Debug\net6.0\ErrorHandling.runtimeconfig.json
+C:\Users\alpar\source\repos\Capstone\ErrorHandling\bin\Debug\net6.0\ErrorHandling.dll
+C:\Users\alpar\source\repos\Capstone\ErrorHandling\bin\Debug\net6.0\ErrorHandling.pdb
+C:\Users\alpar\source\repos\Capstone\ErrorHandling\obj\Debug\net6.0\ErrorHandling.csproj.AssemblyReference.cache
+C:\Users\alpar\source\repos\Capstone\ErrorHandling\obj\Debug\net6.0\ErrorHandling.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\alpar\source\repos\Capstone\ErrorHandling\obj\Debug\net6.0\ErrorHandling.AssemblyInfoInputs.cache
+C:\Users\alpar\source\repos\Capstone\ErrorHandling\obj\Debug\net6.0\ErrorHandling.AssemblyInfo.cs
+C:\Users\alpar\source\repos\Capstone\ErrorHandling\obj\Debug\net6.0\ErrorHandling.csproj.CoreCompileInputs.cache
+C:\Users\alpar\source\repos\Capstone\ErrorHandling\obj\Debug\net6.0\ErrorHandling.dll
+C:\Users\alpar\source\repos\Capstone\ErrorHandling\obj\Debug\net6.0\refint\ErrorHandling.dll
+C:\Users\alpar\source\repos\Capstone\ErrorHandling\obj\Debug\net6.0\ErrorHandling.pdb
+C:\Users\alpar\source\repos\Capstone\ErrorHandling\obj\Debug\net6.0\ErrorHandling.genruntimeconfig.cache
+C:\Users\alpar\source\repos\Capstone\ErrorHandling\obj\Debug\net6.0\ref\ErrorHandling.dll

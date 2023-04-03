@@ -1,0 +1,410 @@
+﻿@page "/shelterDogs/{shelterId:int?}"
+@page "/shelterDogs"
+@using CapstoneApp.Models;
+@using CapstoneApp.Services.Interfaces;
+@inject IDogServices DogService
+@inject IShelterServices ShelterService
+@inject IUserServices UserService
+@inject NavigationManager NavManager
+
+@if (dogs == null)
+{
+	<p><em>Yükleniyor...</em></p>
+}
+else
+{
+	<div>
+		<button class="btn btn-default" onClick="history.back();"><i class="oi oi-arrow-left"></i>              Geri</button>
+		<button class="btn btn-default" onClick="window.location.reload();" style="margin-left:1000px"><i class="oi oi-reload"></i>              Sayfayı Yenile</button>
+	</div>
+	<br />
+	<div>
+		<button class="btn btn-success" @onclick="AddDog" style="border:unset; color:aliceblue; width:160px; height:40px">Yeni Köpek Ekle</button>
+	</div>
+	<br />
+	<p>@shelter.Name barınağındaki tüm köpekler (@dogs.Count köpek) görüntüleniyor.</p>
+	<table class="table">
+		<thead>
+			<tr>
+				<th style="font-size:14px">Köpeğin ID'si</th>
+				<th style="font-size:14px">Çip Kodu</th>
+				<th style="font-size:14px">Cinsi</th>
+				<th style="font-size:14px">Cinsiyeti</th>
+				<th style="font-size:14px">Doğum Tarihi</th>
+				<th style="font-size:14px">Barınağa Getirildiği Tarih</th>
+				<th style="font-size:14px">Sahibinin ID'si (varsa eğer)</th>
+				<th style="font-size:14px">Sahiplenildiği Tarih (varsa eğer)</th>
+				<th style="font-size:14px">Doğurganlık Durumu</th>
+				<th style="font-size:14px">Hamilelik</th>
+				<th></th>
+				<th></th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var dog in dogs)
+			{
+				<tr>
+					<td style="font-size:14px">@dog.DogId</td>
+					<td style="font-size:14px">@dog.ChipCode</td>
+					<td style="font-size:14px">@dog.Breed</td>
+					<td style="font-size:14px">@dog.Gender</td>
+					<td style="font-size:14px">@dog.Birthday</td>
+					<td style="font-size:14px">@dog.BroughtToShelter</td>
+					<td style="font-size:14px">@dog.UserId</td>
+					<td style="font-size:14px">@dog.OwningDate</td>
+					<td style="font-size:14px">@dog.FertilityStatus</td>
+					<td style="font-size:14px">@dog.Pregnancy</td>
+					<td>
+						<button class="btn btn-primary" @onclick="(() => EditDog(dog))"><i class="oi oi-pencil"></i></button>
+					</td>
+					<td>
+						<button class="btn btn-danger" @onclick="(() => DeleteDog(dog))"><i class="oi oi-circle-x"></i></button>
+					</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+}
+
+@if (ShowEmptyPage)
+{
+	<div>
+		<button class="btn btn-default" onClick="history.back();"><i class="oi oi-arrow-left"></i>              Geri</button>
+		<button class="btn btn-default" onClick="window.location.reload();" style="margin-left:1000px"><i class="oi oi-reload"></i>              Sayfayı Yenile</button>
+	</div>
+	<br />
+	<div>
+		<button class="btn btn-success" @onclick="AddDog" style="border:unset; color:aliceblue; width:160px; height:40px">Yeni Kedi Ekle</button>
+	</div>
+	<br />
+	<p>@shelter.Name barınağındaki tüm köpekler (@dogs.Count köpek) görüntüleniyor.</p>
+	<table class="table">
+		<thead>
+			<tr>
+				<th style="font-size:14px">Çip Kodu</th>
+				<th style="font-size:14px">Cinsi</th>
+				<th style="font-size:14px">Cinsiyeti</th>
+				<th style="font-size:14px">Doğum Tarihi</th>
+				<th style="font-size:14px">Barınağa Getirildiği Tarih</th>
+				<th style="font-size:14px">Sahibinin ID'si (varsa eğer)</th>
+				<th style="font-size:14px">Sahiplenildiği Tarih (varsa eğer)</th>
+				<th style="font-size:14px">Doğurganlık Durumu</th>
+				<th style="font-size:14px">Hamilelik</th>
+				<th></th>
+				<th></th>
+			</tr>
+		</thead>
+	</table>
+}
+
+@if (ShowAddPopup)
+{
+	<div class="modal" tabindex="-1" style="display:block" role="dialog">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h3 class="modal-title">Yeni Köpek Ekle</h3>
+					<button type="button" class="close"
+						@onclick="CloseAddPopup">
+						<span aria-hidden="true">X</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<h6 style="font-size:14px">Çip Kodu</h6>
+					<input class="form-control" type="text" @bind="newDog.ChipCode" />
+					<br />
+					<h6 style="font-size:14px">Cinsi</h6>
+					<input class="form-control" type="text" @bind="newDog.Breed" />
+					<br />
+					<h6 style="font-size:14px">Cinsiyeti</h6>
+					<input class="form-control" type="text" @bind="newDog.Gender" />
+					<br />
+					<h6 style="font-size:14px">Doğum Tarihi</h6>
+					<input class="form-control" type="datetime" @bind="newDog.Birthday" />
+					<br />
+					<h6 style="font-size:14px">Barınağa Getirildiği Tarih</h6>
+					<input class="form-control" type="datetime" @bind="newDog.BroughtToShelter" />
+					<br />
+					<h6 style="font-size:14px">Sahibinin ID'si (varsa eğer)</h6>
+					<input class="form-control" type="number" @bind="newDog.UserId" />
+					<br />
+					<h6 style="font-size:14px">Sahiplenildiği Tarih (varsa eğer)</h6>
+					<input class="form-control" type="datetime" @bind="newDog.OwningDate" />
+					<br />
+					<h6 style="font-size:14px">Doğurganlık Durumu</h6>
+					<input class="form-control" type="text" @bind="newDog.FertilityStatus" />
+					<br />
+					<h6 style="font-size:14px">Hamilelik</h6>
+					<input type="checkbox" id="pregnancy" name="pregnancy" @bind="newDog.Pregnancy" />
+					<br />
+					<br />
+					<button class="btn btn-success"
+						@onclick="SaveDogAdd">
+						Ekle
+					</button>&nbsp;
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+@if (ShowEditPopup)
+{
+	<div class="modal" tabindex="-1" style="display:block" role="dialog">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h3 class="modal-title">Köpeği Düzenle</h3>
+					<button type="button" class="close"
+						@onclick="CloseEditPopup">
+						<span aria-hidden="true">X</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<h6 style="font-size:14px">Çip Kodu</h6>
+					<input class="form-control" type="text" @bind="newDog.ChipCode" />
+					<br />
+					<h6 style="font-size:14px">Cinsi</h6>
+					<input class="form-control" type="text" @bind="newDog.Breed" />
+					<br />
+					<h6 style="font-size:14px">Cinsiyeti</h6>
+					<input class="form-control" type="text" @bind="newDog.Gender" />
+					<br />
+					<h6 style="font-size:14px">Doğum Tarihi</h6>
+					<input class="form-control" type="datetime" @bind="newDog.Birthday" />
+					<br />
+					<h6 style="font-size:14px">Barınağa Getirildiği Tarih</h6>
+					<input class="form-control" type="datetime" @bind="newDog.BroughtToShelter" />
+					<br />
+					<h6 style="font-size:14px">Sahibinin ID'si (varsa eğer)</h6>
+					<input class="form-control" type="number" @bind="newDog.UserId" />
+					<br />
+					<h6 style="font-size:14px">Sahiplenildiği Tarih (varsa eğer)</h6>
+					<input class="form-control" type="datetime" @bind="newDog.OwningDate" />
+					<br />
+					<h6 style="font-size:14px">Doğurganlık Durumu</h6>
+					<input class="form-control" type="text" @bind="newDog.FertilityStatus" />
+					<br />
+					<h6 style="font-size:14px">Hamilelik</h6>
+					<input type="checkbox" id="pregnancy" name="pregnancy" @bind="newDog.Pregnancy" />
+					<br />
+					<br />
+					<button class="btn btn-success"
+						@onclick="SaveDogEdit">
+						Güncelle
+					</button>
+					<br />
+					@if (newDog.UserId != null)
+					{
+						<div style="text-align:end">
+							<button class="btn btn-link"
+							@onclick="SeeDogOwner">
+								Sahibinin Bilgilerini Gör
+							</button>
+						</div>
+					}
+					<div style="text-align:end">
+						<button class="btn btn-link"
+							@onclick="SeeVaccinations">
+							Aşı Geçmişini Görüntüle
+						</button>
+					</div>
+					<div style="text-align:end">
+						<button class="btn btn-link"
+							@onclick="SeeTestings">
+							Test Sonuçlarını Görüntüle
+						</button>
+					</div>
+					<div style="text-align:end">
+						<button class="btn btn-link"
+							@onclick="SeeDiseaseHistory">
+							Hastalık Geçmişini Görüntüle
+						</button>
+					</div>&nbsp;
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+@if (ShowOwnerPopup)
+{
+	<div class="modal" tabindex="-1" style="display:block" role="dialog">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h3 class="modal-title">Köpeği Sahiplenen Kişi</h3>
+					<button type="button" class="close"
+						@onclick="CloseOwnerPopup">
+						<span aria-hidden="true">X</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<h6 style="font-weight:700; white-space: pre-line">Kullanıcı Adı:</h6>
+					<h6>@owner.Username</h6>
+					<h6 style="font-weight:700; white-space: pre-line">İsim:</h6>
+					<h6>@owner.Name</h6>
+					<h6 style="font-weight:700; white-space: pre-line">Soyisim:</h6>
+					<h6>@owner.Surname</h6>
+					<h6 style="font-weight:700; white-space: pre-line">Şehir:</h6>
+					<h6>@owner.City</h6>
+					<h6 style="font-weight:700; white-space: pre-line">Adres:</h6>
+					<h6>@owner.Address</h6>
+					<h6 style="font-weight:700; white-space: pre-line">Telefon No:</h6>
+					<h6>@owner.PhoneNumber</h6>
+					<h6 style="font-weight:700; white-space: pre-line">Email:</h6>
+					<h6>@owner.Email</h6>
+					<h6 style="font-weight:700; white-space: pre-line">Rol ID:</h6>
+					<h6>@owner.RoleId</h6>
+					&nbsp;
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+
+@code {
+	[Parameter]
+	public int? shelterId { get; set; }
+
+	private List<Dog> dogs = null;
+	private Shelter shelter;
+	bool ShowEditPopup = false;
+	bool ShowAddPopup = false;
+	bool ShowOwnerPopup = false;
+
+	bool ShowEmptyPage = false;
+
+	Dog newDog = new Dog();
+	Dog bf = new Dog();
+	User owner = new User();
+
+	protected override async Task OnInitializedAsync()
+	{
+		if (shelterId == null)
+		{
+			shelterId = Setting.Shelter.ShelterId;
+		}
+		dogs = await DogService.GetByShelterId((int)shelterId);
+		shelter = await ShelterService.GetShelterById((int)shelterId);
+		if (dogs == null)
+		{
+			ShowEmptyPage = true;
+		}
+		owner = await UserService.GetUserById(bf.UserId);
+	}
+	void AddDog()
+	{
+		newDog = new Dog();
+		newDog.DogId = 0;
+		ShowAddPopup = true;
+	}
+	async void EditDog(Dog dog)
+	{
+		newDog = dog;
+		ShowEditPopup = true;
+		bf.ChipCode = newDog.ChipCode;
+		bf.Breed = newDog.Breed;
+		bf.Gender = newDog.Gender;
+		bf.Birthday = newDog.Birthday;
+		bf.BroughtToShelter = newDog.BroughtToShelter;
+		bf.UserId = newDog.UserId;
+		bf.OwningDate = newDog.OwningDate;
+		bf.FertilityStatus = newDog.FertilityStatus;
+		bf.Pregnancy = newDog.Pregnancy;
+		owner = await UserService.GetUserById(bf.UserId);
+	}
+	void CloseAddPopup()
+	{
+		// Close the Popup
+		ShowAddPopup = false;
+	}
+	void CloseEditPopup()
+	{
+		// Close the Popup
+		ShowEditPopup = false;
+	}
+	void CloseOwnerPopup()
+	{
+		// Close the Popup
+		ShowOwnerPopup = false;
+	}
+	async void SaveDogAdd()
+	{
+		Dog dog = new Dog();
+		dog.ChipCode = newDog.ChipCode;
+		dog.Breed = newDog.Breed;
+		dog.Gender = newDog.Gender;
+		dog.Birthday = newDog.Birthday;
+		dog.BroughtToShelter = newDog.BroughtToShelter;
+		dog.ShelterId = shelterId;
+		if (newDog.UserId == null) dog.UserId = null;
+		else dog.UserId = newDog.UserId;
+		dog.OwningDate = newDog.OwningDate;
+		dog.FertilityStatus = newDog.FertilityStatus;
+		dog.Pregnancy = newDog.Pregnancy;
+		bool adding = await DogService.AddDog(dog);
+		if (adding == true)
+		{
+			await App.Current.MainPage.DisplayAlert("Başarılı", "Köpek kaydı alındı!", "Ok");
+			dogs.Add(dog);
+			ShowEmptyPage = false;
+			await OnInitializedAsync();
+		}
+		else
+		{
+			await App.Current.MainPage.DisplayAlert("Hata", "Kayıt sırasında bir problem meydana geldi!", "Ok");
+		}
+	}
+	async void SaveDogEdit()
+	{
+		bool update = await DogService.EditDog(newDog);
+		if (update == true)
+		{
+			await App.Current.MainPage.DisplayAlert("Başarılı", "Köpek güncellendi!", "Ok");
+			await OnInitializedAsync();
+		}
+		else
+		{
+			await App.Current.MainPage.DisplayAlert("Hata", "Güncelleme sırasında bir problem meydana geldi!", "Ok");
+		}
+	}
+	async void DeleteDog(Dog dog)
+	{
+		bool answer = await App.Current.MainPage.DisplayAlert("", "Köpeği silmek istediğinizden emin misiniz?", "Evet", "Hayır");
+		if (answer == true)
+		{
+			bool delete = await DogService.DeleteDog(dog);
+			if (delete == true)
+			{
+				await App.Current.MainPage.DisplayAlert("Başarılı", "Köpek silindi! Güncel listeyi görmek için lütfen sayfayı yenileyiniz.", "Ok");
+				dogs.Remove(dog);
+			}
+			else
+			{
+				await App.Current.MainPage.DisplayAlert("Hata", "Silme sırasında bir problem meydana geldi!", "Ok");
+			}
+		}
+	}
+	async void SeeDogOwner()
+	{
+		ShowEditPopup = false;
+		ShowOwnerPopup = true;
+	}
+	async void SeeVaccinations()
+	{
+		int dogId = newDog.DogId;
+		NavManager.NavigateTo($"/dogVaccinations/{dogId}");
+	}
+	async void SeeTestings()
+	{
+		int dogId = newDog.DogId;
+		NavManager.NavigateTo($"/dogTestings/{dogId}");
+	}
+	async void SeeDiseaseHistory()
+	{
+		int dogId = newDog.DogId;
+		NavManager.NavigateTo($"/dogDiseaseHistories/{dogId}");
+	}
+}

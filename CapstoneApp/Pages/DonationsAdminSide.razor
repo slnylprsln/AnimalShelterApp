@@ -1,0 +1,209 @@
+﻿@page "/donationsAdminSide"
+
+@using CapstoneApp.Models;
+@using CapstoneApp.Services.Interfaces;
+@inject IDonationServices DonationService
+@inject IShelterServices ShelterService
+@inject IUserServices UserService
+
+@if (donations == null)
+{
+    <p><em>Yükleniyor...</em></p>
+}
+else
+{
+    <div style="margin:0px,100px,100px,100px">
+        <button class="btn btn-default" onClick="window.location.reload();"><i class="oi oi-reload"></i>              Sayfayı Yenile</button>
+    </div>
+    <br />
+    <p>Tüm bağışlar (@donations.Count kayıt) görüntüleniyor.</p>
+    <table class="table">
+        <thead>
+            <tr>
+                <th style="font-size:14px">Bağışın ID'si</th>
+                <th style="font-size:14px">Bağışı Yapan Kişi (ID)</th>
+                <th style="font-size:14px">Bağışın Yapıldığı Barınak (ID)</th>
+                <th style="font-size:14px">Bağış Tipi</th>
+                <th style="font-size:14px">Bağış Miktarı (Adet)</th>
+                <th style="font-size:14px">Onay Sürecinde mi?</th>
+                <th style="font-size:14px">Onaylandı mı?</th>
+                <th></th>
+                <th></th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var donation in donations)
+            {
+                if (donation.Verification == null)
+                {
+                    <tr>
+                        <td style="font-size:14px">@donation.DonationId</td>
+                        <td style="font-size:14px">@donation.UserId</td>
+                        <td style="font-size:14px">@donation.ShelterId</td>
+                        <td style="font-size:14px">@donation.Type</td>
+                        <td style="font-size:14px">@donation.Amount</td>
+                        <td style="font-size:14px">@donation.VerifiedYet</td>
+                        <td style="font-size:14px">@donation.Verification</td>
+                        <td>
+                            <button class="btn btn-success" @onclick="(() => AcceptDonation(donation))"><i class="oi oi-check"></i></button>
+                        </td>
+                        <td>
+                            <button class="btn btn-danger" @onclick="(() => RejectDonation(donation))"><i class="oi oi-x"></i></button>
+                        </td>
+                        <td>
+                            <button class="btn btn-primary" @onclick="(() => OpenDetails(donation))"><i class="oi oi-info"></i></button>
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    <tr>
+                        <td style="font-size:14px">@donation.DonationId</td>
+                        <td style="font-size:14px">@donation.UserId</td>
+                        <td style="font-size:14px">@donation.ShelterId</td>
+                        <td style="font-size:14px">@donation.Type</td>
+                        <td style="font-size:14px">@donation.Amount</td>
+                        <td style="font-size:14px">@donation.VerifiedYet</td>
+                        <td style="font-size:14px">@donation.Verification</td>
+                        <td></td>
+                        <td></td>
+                        <td>
+                            <button class="btn btn-primary" @onclick="(() => OpenDetails(donation))"><i class="oi oi-info"></i></button>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+}
+
+@if (detailsPage)
+{
+    <div class="modal" tabindex="-1" style="display:block" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div style="margin-left:420px" class="modal-header">
+                    <button type="button" class="close" @onclick="CloseDetailsPage">
+                        <span aria-hidden="true">X</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div>
+                        <h4 style="font-weight:bold">Bağışı Yapan Kişinin Bilgileri</h4>
+                        <h6 style="font-weight:700; white-space: pre-line">Kullanıcı Adı:</h6>
+                        <h6>@donationOwner.Username</h6>
+                        <h6 style="font-weight:700; white-space: pre-line">İsim:</h6>
+                        <h6>@donationOwner.Name</h6>
+                        <h6 style="font-weight:700; white-space: pre-line">Soyisim:</h6>
+                        <h6>@donationOwner.Surname</h6>
+                        <h6 style="font-weight:700; white-space: pre-line">Şehir:</h6>
+                        <h6>@donationOwner.City</h6>
+                        <h6 style="font-weight:700; white-space: pre-line">Adres:</h6>
+                        <h6>@donationOwner.Address</h6>
+                        <h6 style="font-weight:700; white-space: pre-line">Telefon No:</h6>
+                        <h6>@donationOwner.PhoneNumber</h6>
+                        <h6 style="font-weight:700; white-space: pre-line">Email:</h6>
+                        <h6>@donationOwner.Email</h6>
+                        <h6 style="font-weight:700; white-space: pre-line">Rol ID:</h6>
+                        <h6>@donationOwner.RoleId</h6>
+                    </div>
+                    <br />
+                    <div>
+                        <h4 style="font-weight:bold">Bağışın Yapıldığı Barınağın Bilgileri</h4>
+                        <h6 style="font-weight:700; white-space: pre-line">İsim:</h6>
+                        <h6>@shelter.Name</h6>
+                        <h6 style="font-weight:700; white-space: pre-line">Barınak Sahibi (ID):</h6>
+                        <h6>@shelter.UserId</h6>
+                        <h6 style="font-weight:700; white-space: pre-line">Sertifika No.:</h6>
+                        <h6>@shelter.CertificateNo</h6>
+                        <h6 style="font-weight:700; white-space: pre-line">Şehir:</h6>
+                        <h6>@shelter.City</h6>
+                        <h6 style="font-weight:700; white-space: pre-line">Adres:</h6>
+                        <h6>@shelter.Address</h6>
+                        <h6 style="font-weight:700; white-space: pre-line">Açılış Tarihi:</h6>
+                        <h6>@shelter.OpeningDate</h6>
+                        <h6 style="font-weight:700; white-space: pre-line">Kedi Maması Stok:</h6>
+                        <h6>@shelter.CatFoodStock</h6>
+                        <h6 style="font-weight:700; white-space: pre-line">Köpek Maması Stok:</h6>
+                        <h6>@shelter.DogFoodStock</h6>
+                        <h6 style="font-weight:700; white-space: pre-line">Kuduz Aşısı Stok:</h6>
+                        <h6>@shelter.RabiesVaccineStock</h6>
+                        <h6 style="font-weight:700; white-space: pre-line">Kombinasyon Aşısı Stok:</h6>
+                        <h6>@shelter.CombinationVaccineStock</h6>
+                        <h6 style="font-weight:700; white-space: pre-line">Parvovirüs Aşısı Stok:</h6>
+                        <h6>@shelter.ParvovirusVaccineStock</h6>
+                        <h6 style="font-weight:700; white-space: pre-line">Distemper Aşısı Stok:</h6>
+                        <h6>@shelter.DistemperVaccineStock</h6>
+                        <h6 style="font-weight:700; white-space: pre-line">Hepatit Aşısı Stok:</h6>
+                        <h6>@shelter.HepatitisVaccineStock</h6>
+                    </div>
+                    &nbsp;
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+@code {
+    private List<Donation> donations;
+    private Donation newDonation;
+    private Shelter shelter;
+    private User donationOwner;
+    private bool detailsPage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        donations = await DonationService.GetDonations();
+    }
+
+    void CloseDetailsPage()
+    {
+        detailsPage = false;
+    }
+
+    async void AcceptDonation(Donation donation)
+    {
+        newDonation = donation;
+        newDonation.VerifiedYet = false;
+        newDonation.Verification = true;
+
+        var result = await DonationService.EditDonation(newDonation);
+        var result1 = await ShelterService.PerformDonation(newDonation.Type, newDonation.Amount, newDonation.ShelterId);
+        if (result == true && result1 == true)
+        {
+            await App.Current.MainPage.DisplayAlert("Başarılı", "Bağış onaylandı ve barınağa aktarıldı!", "Ok");
+
+            await OnInitializedAsync();
+        }
+        else
+        {
+            await App.Current.MainPage.DisplayAlert("Hata", "Bağış onaylanırken bir hata meydana geldi!", "Ok");
+        }
+    }
+
+    async void RejectDonation(Donation donation)
+    {
+        newDonation = donation;
+        donation.VerifiedYet = false;
+        donation.Verification = false;
+        var result = await DonationService.EditDonation(donation);
+        if (result == true)
+        {
+            await App.Current.MainPage.DisplayAlert("Başarılı", "Bağış reddedildi!", "Ok");
+            await OnInitializedAsync();
+        }
+        else
+        {
+            await App.Current.MainPage.DisplayAlert("Hata", "Bağış reddedilirken bir hata meydana geldi!", "Ok");
+        }
+    }
+
+    async void OpenDetails(Donation donation)
+    {
+        shelter = await ShelterService.GetShelterById(donation.ShelterId);
+        donationOwner = await UserService.GetUserById(donation.UserId);
+        detailsPage = true;
+    }
+}

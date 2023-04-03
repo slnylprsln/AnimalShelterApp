@@ -1,0 +1,17 @@
+C:\Users\alpar\source\repos\Capstone\Dtos\bin\Debug\net6.0\Dtos.deps.json
+C:\Users\alpar\source\repos\Capstone\Dtos\bin\Debug\net6.0\Dtos.runtimeconfig.json
+C:\Users\alpar\source\repos\Capstone\Dtos\bin\Debug\net6.0\Dtos.dll
+C:\Users\alpar\source\repos\Capstone\Dtos\bin\Debug\net6.0\Dtos.pdb
+C:\Users\alpar\source\repos\Capstone\Dtos\bin\Debug\net6.0\Entities.dll
+C:\Users\alpar\source\repos\Capstone\Dtos\bin\Debug\net6.0\Entities.pdb
+C:\Users\alpar\source\repos\Capstone\Dtos\obj\Debug\net6.0\Dtos.csproj.AssemblyReference.cache
+C:\Users\alpar\source\repos\Capstone\Dtos\obj\Debug\net6.0\Dtos.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\alpar\source\repos\Capstone\Dtos\obj\Debug\net6.0\Dtos.AssemblyInfoInputs.cache
+C:\Users\alpar\source\repos\Capstone\Dtos\obj\Debug\net6.0\Dtos.AssemblyInfo.cs
+C:\Users\alpar\source\repos\Capstone\Dtos\obj\Debug\net6.0\Dtos.csproj.CoreCompileInputs.cache
+C:\Users\alpar\source\repos\Capstone\Dtos\obj\Debug\net6.0\Dtos.csproj.CopyComplete
+C:\Users\alpar\source\repos\Capstone\Dtos\obj\Debug\net6.0\Dtos.dll
+C:\Users\alpar\source\repos\Capstone\Dtos\obj\Debug\net6.0\refint\Dtos.dll
+C:\Users\alpar\source\repos\Capstone\Dtos\obj\Debug\net6.0\Dtos.pdb
+C:\Users\alpar\source\repos\Capstone\Dtos\obj\Debug\net6.0\Dtos.genruntimeconfig.cache
+C:\Users\alpar\source\repos\Capstone\Dtos\obj\Debug\net6.0\ref\Dtos.dll

@@ -1,0 +1,52 @@
+﻿@page "/generalDogDiseaseHistories/{dogId:int}"
+@using CapstoneApp.Models;
+@using CapstoneApp.Services.Interfaces;
+@inject IDogServices DogService
+
+@if (diseaseHistories == null)
+{
+    <p><em>Yükleniyor...</em></p>
+}
+else
+{
+    <div>
+        <button class="btn btn-default" onClick="history.back();"><i class="oi oi-arrow-left"></i>              Geri</button>
+        <button class="btn btn-default" onClick="window.location.reload();" style="margin-left:1000px"><i class="oi oi-reload"></i>              Sayfayı Yenile</button>
+    </div>
+    <br />
+    <p>@dog.ChipCode çip kodlu köpeğin geçirdiği tüm hastalıklar (@diseaseHistories.Count kayıt) görüntüleniyor.</p>
+    <table class="table">
+        <thead>
+            <tr>
+                <th style="font-size:14px">Hastalık ID'si</th>
+                <th style="font-size:14px">Hastalık Adı</th>
+                <th style="font-size:14px">Başlangıç Tarihi</th>
+                <th style="font-size:14px">Bitiş Tarihi</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var diseaseHistory in diseaseHistories)
+            {
+                <tr>
+                    <td style="font-size:14px">@diseaseHistory.DogDiseaseHistoryId</td>
+                    <td style="font-size:14px">@diseaseHistory.DiseaseName</td>
+                    <td style="font-size:14px">@diseaseHistory.StartDate</td>
+                    <td style="font-size:14px">@diseaseHistory.EndDate</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    [Parameter]
+    public int dogId { get; set; }
+    private List<DogDiseaseHistory> diseaseHistories;
+    private Dog dog;
+
+    protected override async Task OnInitializedAsync()
+    {
+        diseaseHistories = await DogService.GetDiseaseHistory(dogId);
+        dog = await DogService.GetDogById(dogId);
+    }
+}

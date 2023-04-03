@@ -1,0 +1,85 @@
+﻿@page "/login"
+@using Newtonsoft.Json;
+@using CapstoneApp.Models;
+@using CapstoneApp.Services.Interfaces;
+@inject IUserServices UserService;
+@inject NavigationManager NavManager;
+
+<div style="text-align:center">
+    <img src="images/logo.png" alt="Logo" height="200" width="200" />
+</div>
+<br/>
+
+<EditForm Model="@loginModel" OnValidSubmit="Submit">
+    <DataAnnotationsValidator />
+    <div class="form-group">
+        <label>Kullanıcı Adı</label>
+        <input type="text" @bind-value="loginModel.Username" class="form-control"/>
+        <ValidationMessage For="@(() => loginModel.Username)" />
+    </div>
+    <div class="mt-2 form-group">
+        <label>Şifre</label>
+        <input type="password" @bind-value="loginModel.Password" class="form-control" />
+        <ValidationMessage For="@(() => loginModel.Password)" />
+    </div>
+    <div class="mt-2 text-end">
+        <NavLink class="nav-link" href="registration">
+            <span>Henüz bir hesabınız yok mu?</span>
+        </NavLink>
+    </div>
+    <div class="text-center mt-2">
+        <button class="btn btn-primary" type="submit">
+            <span class="@_spinnerClass" role="status" aria-hidden="true"></span>
+            Giriş Yap
+        </button>
+    </div>
+</EditForm>
+
+@code {
+    LoginModel loginModel = new();
+
+    private string _spinnerClass = "";
+    private async void Submit()
+    {
+        _spinnerClass = "spinner-border spinner-border-sm";
+        var response = await UserService.AuthenticateUser(loginModel);
+        if (response != null)
+        {
+            var userBasicDetail = new UserBasicDetail
+                {
+                    UserId = response.UserId,
+                    Username = response.Username,
+                    Name = response.Name,
+                    Surname = response.Surname,
+                    Email = response.Email,
+                    Password = response.Password,
+                    City = response.City,
+                    Address = response.Address,
+                    PhoneNumber = response.PhoneNumber,
+                    RoleId = response.RoleId
+                };
+            string userBasicDetailStr = JsonConvert.SerializeObject(userBasicDetail);
+            await SecureStorage.SetAsync(nameof(Setting.UserBasicDetail), userBasicDetailStr);
+            Setting.UserBasicDetail = userBasicDetail;
+            if (Setting.UserBasicDetail.RoleId == 1)
+            {
+                NavManager.NavigateTo("/adminDashboard");
+            }
+            if (Setting.UserBasicDetail.RoleId == 2)
+            {
+                NavManager.NavigateTo("/shelterOwnerDashboard");
+            }
+            if (Setting.UserBasicDetail.RoleId == 3)
+            {
+                NavManager.NavigateTo("/generalDashboard");
+            }
+
+        }
+        else
+        {
+            await App.Current.MainPage.DisplayAlert("Hata","Geçersiz kullanıcı adı veya şifre", "Ok");
+        }
+        _spinnerClass = "";
+        this.StateHasChanged();
+    }
+}

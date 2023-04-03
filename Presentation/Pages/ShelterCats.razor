@@ -1,0 +1,367 @@
+﻿@page "/shelterCats/{shelterId:int?}"
+@using Presentation.Models;
+@using Presentation.Services.Interfaces;
+@inject ICatServices CatService
+@inject IShelterServices ShelterService
+@inject IUserServices UserService
+
+@if (cats == null)
+{
+    <p><em>Yükleniyor...</em></p>
+}
+@if (cats != null)
+{
+	<div style="margin:0px,100px,100px,100px">
+		<button class="btn btn-default" onClick="window.location.reload();"><i class="oi oi-reload"></i>              Reload</button>
+	</div>
+	<br />
+	<div>
+		<button class="btn btn-success" @onclick="AddCat" style="border:unset; color:aliceblue; width:160px; height:40px">Yeni Kedi Ekle</button>
+	</div>
+	<br />
+	<p>@shelter.Name barınağındaki tüm kediler (@cats.Count kedi) görüntüleniyor.</p>
+	<table class="table">
+		<thead>
+			<tr>
+				<th style="font-size:14px">Çip Kodu</th>
+				<th style="font-size:14px">Cinsi</th>
+				<th style="font-size:14px">Cinsiyeti</th>
+				<th style="font-size:14px">Doğum Tarihi</th>
+				<th style="font-size:14px">Barınağa Getirildiği Tarih</th>
+				<th style="font-size:14px">Sahibinin ID'si (varsa eğer)</th>
+				<th style="font-size:14px">Sahiplenildiği Tarih (varsa eğer)</th>
+				<th style="font-size:14px">Doğurganlık Durumu</th>
+				<th style="font-size:14px">Hamilelik</th>
+				<th></th>
+				<th></th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var cat in cats)
+			{
+				<tr>
+					<td style="font-size:14px">@cat.ChipCode</td>
+					<td style="font-size:14px">@cat.Breed</td>
+					<td style="font-size:14px">@cat.Gender</td>
+					<td style="font-size:14px">@cat.Birthday</td>
+					<td style="font-size:14px">@cat.BroughtToShelter</td>
+					<td style="font-size:14px">@cat.UserId</td>
+					<td style="font-size:14px">@cat.OwningDate</td>
+					<td style="font-size:14px">@cat.FertilityStatus</td>
+					<td style="font-size:14px">@cat.Pregnancy</td>
+					<td>
+						<button class="btn btn-primary" @onclick="(() => EditCat(cat))"><i class="oi oi-pencil"></i></button>
+					</td>
+					<td>
+						<button class="btn btn-danger" @onclick="(() => DeleteCat(cat))"><i class="oi oi-circle-x"></i></button>
+					</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+}
+
+@if (ShowEmptyPage)
+{
+	<div style="margin:0px,100px,100px,100px">
+		<button class="btn btn-default" onClick="window.location.reload();"><i class="oi oi-reload"></i>              Reload</button>
+	</div>
+	<br />
+	<div>
+		<button class="btn btn-success" @onclick="AddCat" style="border:unset; color:aliceblue; width:160px; height:40px">Yeni Kedi Ekle</button>
+	</div>
+	<br />
+	<p>@shelter.Name barınağındaki tüm kediler (@cats.Count kedi) görüntüleniyor.</p>
+	<table class="table">
+		<thead>
+			<tr>
+				<th style="font-size:14px">Çip Kodu</th>
+				<th style="font-size:14px">Cinsi</th>
+				<th style="font-size:14px">Cinsiyeti</th>
+				<th style="font-size:14px">Doğum Tarihi</th>
+				<th style="font-size:14px">Barınağa Getirildiği Tarih</th>
+				<th style="font-size:14px">Sahibinin ID'si (varsa eğer)</th>
+				<th style="font-size:14px">Sahiplenildiği Tarih (varsa eğer)</th>
+				<th style="font-size:14px">Doğurganlık Durumu</th>
+				<th style="font-size:14px">Hamilelik</th>
+				<th></th>
+				<th></th>
+			</tr>
+		</thead>
+	</table>
+}
+
+@if (ShowAddPopup)
+{
+	<div class="modal" tabindex="-1" style="display:block" role="dialog">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h3 class="modal-title">Yeni Kedi Ekle</h3>
+					<button type="button" class="close"
+						@onclick="CloseAddPopup">
+						<span aria-hidden="true">X</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<h6 style="font-size:14px">Çip Kodu</h6>
+					<input class="form-control" type="text" @bind="newCat.ChipCode" />
+					<br />
+					<h6 style="font-size:14px">Cinsi</h6>
+					<input class="form-control" type="text" @bind="newCat.Breed" />
+					<br />
+					<h6 style="font-size:14px">Cinsiyeti</h6>
+					<input class="form-control" type="text" @bind="newCat.Gender" />
+					<br />
+					<h6 style="font-size:14px">Doğum Tarihi</h6>
+					<input class="form-control" type="datetime" @bind="newCat.Birthday" />
+					<br />
+					<h6 style="font-size:14px">Barınağa Getirildiği Tarih</h6>
+					<input class="form-control" type="datetime" @bind="newCat.BroughtToShelter" />
+					<br />
+					<h6 style="font-size:14px">Sahibinin ID'si (varsa eğer)</h6>
+					<input class="form-control" type="number" @bind="newCat.UserId" />
+					<br />
+					<h6 style="font-size:14px">Sahiplenildiği Tarih (varsa eğer)</h6>
+					<input class="form-control" type="datetime" @bind="newCat.OwningDate" />
+					<br />
+					<h6 style="font-size:14px">Doğurganlık Durumu</h6>
+					<input class="form-control" type="text" @bind="newCat.FertilityStatus" />
+					<br />
+					<h6 style="font-size:14px">Hamilelik</h6>
+					<input type="checkbox" id="pregnancy" name="pregnancy" @bind="newCat.Pregnancy" />
+					<br />
+					<br />
+					<button class="btn btn-success"
+						@onclick="SaveCatAdd">
+						Ekle
+					</button>&nbsp;
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+@if (ShowEditPopup)
+{
+	<div class="modal" tabindex="-1" style="display:block" role="dialog">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h3 class="modal-title">Kediyi Düzenle</h3>
+					<button type="button" class="close"
+						@onclick="CloseEditPopup">
+						<span aria-hidden="true">X</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<h6 style="font-size:14px">Çip Kodu</h6>
+					<input class="form-control" type="text" @bind="newCat.ChipCode" />
+					<br />
+					<h6 style="font-size:14px">Cinsi</h6>
+					<input class="form-control" type="text" @bind="newCat.Breed" />
+					<br />
+					<h6 style="font-size:14px">Cinsiyeti</h6>
+					<input class="form-control" type="text" @bind="newCat.Gender" />
+					<br />
+					<h6 style="font-size:14px">Doğum Tarihi</h6>
+					<input class="form-control" type="datetime" @bind="newCat.Birthday" />
+					<br />
+					<h6 style="font-size:14px">Barınağa Getirildiği Tarih</h6>
+					<input class="form-control" type="datetime" @bind="newCat.BroughtToShelter" />
+					<br />
+					<h6 style="font-size:14px">Sahibinin ID'si (varsa eğer)</h6>
+					<input class="form-control" type="number" @bind="newCat.UserId" />
+					<br />
+					<h6 style="font-size:14px">Sahiplenildiği Tarih (varsa eğer)</h6>
+					<input class="form-control" type="datetime" @bind="newCat.OwningDate" />
+					<br />
+					<h6 style="font-size:14px">Doğurganlık Durumu</h6>
+					<input class="form-control" type="text" @bind="newCat.FertilityStatus" />
+					<br />
+					<h6 style="font-size:14px">Hamilelik</h6>
+					<input type="checkbox" id="pregnancy" name="pregnancy" @bind="newCat.Pregnancy" />
+					<br />
+					<br />
+					<button class="btn btn-success"
+						@onclick="SaveCatEdit">
+						Güncelle
+					</button>
+					@if (newCat.UserId != null)
+					{
+						<br />
+						<div style="text-align:end">
+							<button class="btn btn-link"
+							@onclick="SeeCatOwner">
+								Sahibinin Bilgilerini Gör
+							</button>
+						</div>
+					}&nbsp;
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+@if (ShowOwnerPopup)
+{
+	<div class="modal" tabindex="-1" style="display:block" role="dialog">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h3 class="modal-title">Kediyi Sahiplenen Kişi</h3>
+					<button type="button" class="close"
+						@onclick="CloseOwnerPopup">
+						<span aria-hidden="true">X</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<h6 style="font-weight:700; white-space: pre-line">Kullanıcı Adı:</h6>
+					<h6>@owner.Username</h6>
+					<h6 style="font-weight:700; white-space: pre-line">İsim:</h6>
+					<h6>@owner.Name</h6>
+					<h6 style="font-weight:700; white-space: pre-line">Soyisim:</h6>
+					<h6>@owner.Surname</h6>
+					<h6 style="font-weight:700; white-space: pre-line">Şehir:</h6>
+					<h6>@owner.City</h6>
+					<h6 style="font-weight:700; white-space: pre-line">Adres:</h6>
+					<h6>@owner.Address</h6>
+					<h6 style="font-weight:700; white-space: pre-line">Telefon No:</h6>
+					<h6>@owner.PhoneNumber</h6>
+					<h6 style="font-weight:700; white-space: pre-line">Email:</h6>
+					<h6>@owner.Email</h6>
+					<h6 style="font-weight:700; white-space: pre-line">Rol ID:</h6>
+					<h6>@owner.RoleId</h6>
+					&nbsp;
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+
+@code {
+	[Parameter]
+	public int? shelterId { get; set; }
+
+	private List<Cat> cats;
+	private Shelter shelter;
+	bool ShowEditPopup = false;
+	bool ShowAddPopup = false;
+	bool ShowOwnerPopup = false;
+
+	bool ShowEmptyPage = false;
+
+	Cat newCat = new Cat();
+	Cat bf = new Cat();
+	User owner = new User();
+
+	protected override async Task OnInitializedAsync()
+	{
+		cats = await CatService.GetByShelterId((int)shelterId);
+		shelter = await ShelterService.GetShelterById((int)shelterId);
+		if (cats == null)
+		{
+			ShowEmptyPage = true;
+		}
+		owner = await UserService.GetUserById(bf.UserId);
+	}
+	void AddCat()
+	{
+		newCat = new Cat();
+		newCat.CatId = 0;
+		ShowAddPopup = true;
+	}
+	async void EditCat(Cat cat)
+	{
+		newCat = cat;
+		ShowEditPopup = true;
+		bf.ChipCode = newCat.ChipCode;
+		bf.Breed = newCat.Breed;
+		bf.Gender = newCat.Gender;
+		bf.Birthday = newCat.Birthday;
+		bf.BroughtToShelter = newCat.BroughtToShelter;
+		bf.UserId = newCat.UserId;
+		bf.OwningDate = newCat.OwningDate;
+		bf.FertilityStatus = newCat.FertilityStatus;
+		bf.Pregnancy = newCat.Pregnancy;
+		owner = await UserService.GetUserById(bf.UserId);
+	}
+	void CloseAddPopup()
+	{
+		// Close the Popup
+		ShowAddPopup = false;
+	}
+	void CloseEditPopup()
+	{
+		// Close the Popup
+		ShowEditPopup = false;
+	}
+	void CloseOwnerPopup()
+	{
+		// Close the Popup
+		ShowOwnerPopup = false;
+	}
+	async void SaveCatAdd()
+	{
+		Cat cat = new Cat();
+		cat.ChipCode = newCat.ChipCode;
+		cat.Breed = newCat.Breed;
+		cat.Gender = newCat.Gender;
+		cat.Birthday = newCat.Birthday;
+		cat.BroughtToShelter = newCat.BroughtToShelter;
+		cat.ShelterId = shelterId;
+		if (newCat.UserId == null) cat.UserId = null;
+		else cat.UserId = newCat.UserId;
+		cat.OwningDate = newCat.OwningDate;
+		cat.FertilityStatus = newCat.FertilityStatus;
+		cat.Pregnancy = newCat.Pregnancy;
+		bool adding = await CatService.AddCat(cat);
+		if (adding == true)
+		{
+			await App.Current.MainPage.DisplayAlert("Başarılı", "Kedi kaydı alındı!", "Ok");
+			cats.Add(cat);
+			ShowEmptyPage = false;
+			await OnInitializedAsync();
+		}
+		else
+		{
+			await App.Current.MainPage.DisplayAlert("Hata", "Kayıt sırasında bir problem meydana geldi!", "Ok");
+		}
+	}
+	async void SaveCatEdit()
+	{
+		bool update = await CatService.EditCat(newCat);
+		if (update == true)
+		{
+			await App.Current.MainPage.DisplayAlert("Başarılı", "Kedi güncellendi!", "Ok");
+			await OnInitializedAsync();
+		}
+		else
+		{
+			await App.Current.MainPage.DisplayAlert("Hata", "Güncelleme sırasında bir problem meydana geldi!", "Ok");
+		}
+	}
+	async void DeleteCat(Cat cat)
+	{
+		bool answer = await App.Current.MainPage.DisplayAlert("", "Kediyi silmek istediğinizden emin misiniz?", "Evet", "Hayır");
+		if (answer == true)
+		{
+			bool delete = await CatService.DeleteCat(cat);
+			if (delete == true)
+			{
+				await App.Current.MainPage.DisplayAlert("Başarılı", "Kedi silindi! Güncel listeyi görmek için lütfen sayfayı yenileyiniz.", "Ok");
+				cats.Remove(cat);
+			}
+			else
+			{
+				await App.Current.MainPage.DisplayAlert("Hata", "Silme sırasında bir problem meydana geldi!", "Ok");
+			}
+		}
+	}
+	async void SeeCatOwner()
+	{
+		ShowEditPopup = false;
+		ShowOwnerPopup = true;
+	}
+}

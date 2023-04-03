@@ -1,0 +1,43 @@
+﻿@page "/"
+@using CapstoneApp.Services;
+@using CapstoneApp.Services.Interfaces;
+@using Newtonsoft.Json;
+@using CapstoneApp.Models;
+@inject NavigationManager NavManager
+@inject IShelterServices ShelterService
+
+<h3>Yükleniyor...</h3>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        //Uygulama takılırsa diye
+        //Setting.UserBasicDetail = null;
+        //string userDetails = null;
+        //NavManager.NavigateTo("/login");
+        Setting.UserBasicDetail = null;
+        string userDetails = await SecureStorage.GetAsync(nameof(Setting.UserBasicDetail));
+        if (!string.IsNullOrWhiteSpace(userDetails))
+        {
+            var userBasicDetail = JsonConvert.DeserializeObject<UserBasicDetail>(userDetails);
+            Setting.UserBasicDetail = userBasicDetail;
+            if (Setting.UserBasicDetail.RoleId == 1)
+            {
+                NavManager.NavigateTo("/adminDashboard");
+            }
+            if (Setting.UserBasicDetail.RoleId == 2)
+            {
+                Setting.Shelter = await ShelterService.GetShelterByOwnerId(Setting.UserBasicDetail.UserId);
+                NavManager.NavigateTo("/shelterOwnerDashboard");
+            }
+            if (Setting.UserBasicDetail.RoleId == 3)
+            {
+                NavManager.NavigateTo("/generalDashboard");
+            }
+        }
+        else
+        {
+            NavManager.NavigateTo("/login");
+        }
+    }
+}

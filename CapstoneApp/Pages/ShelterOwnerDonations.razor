@@ -1,0 +1,103 @@
+﻿@page "/shelterOwnerDonations"
+
+@using CapstoneApp.Models;
+@using CapstoneApp.Services.Interfaces;
+@inject IDonationServices DonationService
+@inject IShelterServices ShelterService
+@inject IUserServices UserService
+
+@if (donations == null)
+{
+    <p><em>Yükleniyor...</em></p>
+}
+else
+{
+    <div style="margin:0px,100px,100px,100px">
+        <button class="btn btn-default" onClick="window.location.reload();"><i class="oi oi-reload"></i>              Sayfayı Yenile</button>
+    </div>
+    <br />
+    <p>Barınağınıza yapılan tüm bağışlar (@donations.Count kayıt) görüntüleniyor.</p>
+    <table class="table">
+        <thead>
+            <tr>
+                <th style="font-size:14px">Bağışın ID'si</th>
+                <th style="font-size:14px">Bağışı Yapan Kişi (ID)</th>
+                <th style="font-size:14px">Bağış Tipi</th>
+                <th style="font-size:14px">Bağış Miktarı (Adet)</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var donation in donations)
+            {
+                <tr>
+                    <td style="font-size:14px">@donation.DonationId</td>
+                    <td style="font-size:14px">@donation.UserId</td>
+                    <td style="font-size:14px">@donation.Type</td>
+                    <td style="font-size:14px">@donation.Amount</td>
+                    <td>
+                        <button class="btn btn-primary" @onclick="(() => OpenDetails(donation))"><i class="oi oi-info"></i></button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (detailsPage)
+{
+    <div class="modal" tabindex="-1" style="display:block" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div style="margin-left:420px" class="modal-header">
+                    <button type="button" class="close" @onclick="CloseDetailsPage">
+                        <span aria-hidden="true">X</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div>
+                        <h4 style="font-weight:bold">Bağışı Yapan Kişinin Bilgileri</h4>
+                        <h6 style="font-weight:700; white-space: pre-line">Kullanıcı Adı:</h6>
+                        <h6>@donationOwner.Username</h6>
+                        <h6 style="font-weight:700; white-space: pre-line">İsim:</h6>
+                        <h6>@donationOwner.Name</h6>
+                        <h6 style="font-weight:700; white-space: pre-line">Soyisim:</h6>
+                        <h6>@donationOwner.Surname</h6>
+                        <h6 style="font-weight:700; white-space: pre-line">Şehir:</h6>
+                        <h6>@donationOwner.City</h6>
+                        <h6 style="font-weight:700; white-space: pre-line">Adres:</h6>
+                        <h6>@donationOwner.Address</h6>
+                        <h6 style="font-weight:700; white-space: pre-line">Telefon No:</h6>
+                        <h6>@donationOwner.PhoneNumber</h6>
+                        <h6 style="font-weight:700; white-space: pre-line">Email:</h6>
+                        <h6>@donationOwner.Email</h6>
+                        <h6 style="font-weight:700; white-space: pre-line">Rol ID:</h6>
+                        <h6>@donationOwner.RoleId</h6>
+                    </div>
+                    &nbsp;
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Donation> donations;
+    private Donation newDonation;
+    private User donationOwner;
+    private bool detailsPage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        donations = await DonationService.GetApprovedDonationsByShelterId(Setting.Shelter.ShelterId);
+    }
+    void CloseDetailsPage()
+    {
+        detailsPage = false;
+    }
+    async void OpenDetails(Donation donation)
+    {
+        donationOwner = await UserService.GetUserById(donation.UserId);
+        detailsPage = true;
+    }
+}

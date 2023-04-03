@@ -1,0 +1,61 @@
+﻿@page "/stock"
+@using CapstoneApp.Models;
+@using CapstoneApp.Services;
+@using CapstoneApp.Services.Interfaces;
+@inject IShelterServices ShelterService
+
+<div>
+	<button class="btn btn-default" onClick="window.location.reload();" style="margin-left:1000px"><i class="oi oi-reload"></i>              Sayfayı Yenile</button>
+</div>
+<label style="font-size:14px">İsim</label>
+<input class="form-control" type="text" style="width:300px" @bind="shelter.Name" />
+<label style="font-size:14px">Barınak Sahibi (ID)</label>
+<input class="form-control" type="number" style="width:300px" @bind="@shelter.UserId" />
+<label style="font-size:14px">Sertifika No.</label>
+<input class="form-control" type="text" style="width:300px" @bind="@shelter.CertificateNo" />
+<label style="font-size:14px">Şehir</label>
+<input class="form-control" type="text" style="width:300px" @bind="@shelter.City" />
+<label style="font-size:14px">Adres</label>
+<input class="form-control" type="text" style="width:300px" @bind="@shelter.Address" />
+<label style="font-size:14px">Açılış Tarihi</label>
+<input class="form-control" type="datetime" style="width:300px" @bind="@shelter.OpeningDate" />
+<label style="font-size:14px">Kedi Maması Stok</label>
+<input class="form-control" type="number" style="width:300px" @bind="@shelter.CatFoodStock" />
+<label style="font-size:14px">Köpek Maması Stok</label>
+<input class="form-control" type="number" style="width:300px" @bind="@shelter.DogFoodStock" />
+<label style="font-size:14px">Kuduz Aşısı Stok</label>
+<input class="form-control" type="number" style="width:300px" @bind="@shelter.RabiesVaccineStock" />
+<label style="font-size:14px">Kombinasyon Aşısı Stok</label>
+<input class="form-control" type="number" style="width:300px" @bind="@shelter.CombinationVaccineStock" />
+<label style="font-size:14px">Parvovirüs Aşısı Stok</label>
+<input class="form-control" type="number" style="width:300px" @bind="@shelter.ParvovirusVaccineStock" />
+<label style="font-size:14px">Distemper Aşısı Stok</label>
+<input class="form-control" type="number" style="width:300px" @bind="@shelter.DistemperVaccineStock" />
+<label style="font-size:14px">Hepatit Aşısı Stok</label>
+<input class="form-control" type="number" style="width:300px" @bind="@shelter.HepatitisVaccineStock" />
+<br />
+<button class="btn btn-success" style="width:300px" @onclick="SaveShelterEdit">Güncelle</button>
+
+
+@code {
+	Shelter shelter;
+
+	protected override async Task OnInitializedAsync()
+	{
+		shelter = Setting.Shelter;
+	}
+
+	async void SaveShelterEdit()
+	{
+		bool update = await ShelterService.EditShelter(Setting.Shelter);
+		if (update == true)
+		{
+			await App.Current.MainPage.DisplayAlert("Başarılı", "Barınak güncellendi!", "Ok");
+			await OnInitializedAsync();
+		}
+		else
+		{
+			await App.Current.MainPage.DisplayAlert("Hata", "Güncelleme sırasında bir problem meydana geldi!", "Ok");
+		}
+	}
+}

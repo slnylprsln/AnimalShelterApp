@@ -1,0 +1,241 @@
+﻿@page "/catTestings/{catId:int}"
+@using CapstoneApp.Models;
+@using CapstoneApp.Services.Interfaces;
+@inject ICatServices CatService
+
+@if (testings == null)
+{
+	<p><em>Yükleniyor...</em></p>
+}
+@if (testings != null)
+{
+	<div>
+		<button class="btn btn-default" onClick="history.back();"><i class="oi oi-arrow-left"></i>              Geri</button>
+		<button class="btn btn-default" onClick="window.location.reload();" style="margin-left:1000px"><i class="oi oi-reload"></i>              Sayfayı Yenile</button>
+	</div>
+	<br />
+	<div>
+		<button class="btn btn-success" @onclick="AddTesting" style="border:unset; color:aliceblue; width:200px; height:40px">Yeni Test Kaydı Ekle</button>
+	</div>
+	<br />
+	<p>@cat.ChipCode çip kodlu kedinin olduğu tüm testler (@testings.Count kayıt) görüntüleniyor.</p>
+	<table class="table">
+		<thead>
+			<tr>
+				<th style="font-size:14px">Testin ID'si</th>
+				<th style="font-size:14px">Testin Adı</th>
+				<th style="font-size:14px">Test Olma Tarihi</th>
+				<th style="font-size:14px">Test Sonucu</th>
+				<th></th>
+				<th></th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var testing in testings)
+			{
+				<tr>
+					<td style="font-size:14px">@testing.CatTestingId</td>
+					<td style="font-size:14px">@testing.Name</td>
+					<td style="font-size:14px">@testing.TestDate</td>
+					<td style="font-size:14px">@testing.TestResult</td>
+
+					<td>
+						<button class="btn btn-primary" @onclick="(() => EditTesting(testing))"><i class="oi oi-pencil"></i></button>
+					</td>
+					<td>
+						<button class="btn btn-danger" @onclick="(() => DeleteTesting(testing))"><i class="oi oi-circle-x"></i></button>
+					</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+}
+
+@if (ShowEmptyPage)
+{
+	<div>
+		<button class="btn btn-default" onClick="history.back();"><i class="oi oi-arrow-left"></i>              Geri</button>
+		<button class="btn btn-default" onClick="window.location.reload();" style="margin-left:1000px"><i class="oi oi-reload"></i>              Sayfayı Yenile</button>
+	</div>
+	<br />
+	<div>
+		<button class="btn btn-success" @onclick="AddTesting" style="border:unset; color:aliceblue; width:200px; height:40px">Yeni Test Kaydı Ekle</button>
+	</div>
+	<br />
+	<p>@cat.ChipCode çip kodlu kedinin olduğu tüm testler (0 kayıt) görüntüleniyor.</p>
+	<table class="table">
+		<thead>
+			<tr>
+				<th style="font-size:14px">Testin Adı</th>
+				<th style="font-size:14px">Test Olma Tarihi</th>
+				<th style="font-size:14px">Test Sonucu</th>
+				<th></th>
+				<th></th>
+			</tr>
+		</thead>
+	</table>
+}
+
+@if (ShowAddPopup)
+{
+	<div class="modal" tabindex="-1" style="display:block" role="dialog">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h3 class="modal-title">Yeni Test Kaydı Ekle</h3>
+					<button type="button" class="close"
+						@onclick="CloseAddPopup">
+						<span aria-hidden="true">X</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<h6 style="font-size:14px">Testin Adı</h6>
+					<input class="form-control" type="text" @bind="newCatTesting.Name" />
+					<br />
+					<h6 style="font-size:14px">Test Olma Tarihi</h6>
+					<input class="form-control" type="date" @bind="newCatTesting.TestDate" />
+					<br />
+					<h6 style="font-size:14px">Test Sonucu</h6>
+					<input class="form-control" type="text" @bind="newCatTesting.TestResult" />
+					<br />
+					<button class="btn btn-success"
+						@onclick="SaveTestingAdd">
+						Ekle
+					</button>&nbsp;
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+@if (ShowEditPopup)
+{
+	<div class="modal" tabindex="-1" style="display:block" role="dialog">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h3 class="modal-title">Test Kaydını Düzenle</h3>
+					<button type="button" class="close"
+						@onclick="CloseEditPopup">
+						<span aria-hidden="true">X</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<h6 style="font-size:14px">Testin Adı</h6>
+					<input class="form-control" type="text" @bind="newCatTesting.Name" />
+					<br />
+					<h6 style="font-size:14px">Test Olma Tarihi</h6>
+					<input class="form-control" type="date" @bind="newCatTesting.TestDate" />
+					<br />
+					<h6 style="font-size:14px">Test Sonucu</h6>
+					<input class="form-control" type="text" @bind="newCatTesting.TestResult" />
+					<br />
+					<button class="btn btn-success"
+						@onclick="SaveTestingEdit">
+						Güncelle
+					</button>&nbsp;
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+@code {
+	[Parameter]
+	public int catId { get; set; }
+
+	private List<CatTesting> testings;
+	private CatTesting newCatTesting;
+	private CatTesting bf = new CatTesting();
+	private Cat cat;
+	bool ShowEmptyPage = false;
+	bool ShowEditPopup = false;
+	bool ShowAddPopup = false;
+
+	protected override async Task OnInitializedAsync()
+	{
+		testings = await CatService.GetTestings(catId);
+		cat = await CatService.GetCatById(catId);
+		if (testings == null)
+		{
+			ShowEmptyPage = true;
+		}
+	}
+	void AddTesting()
+	{
+		newCatTesting = new CatTesting();
+		ShowAddPopup = true;
+	}
+	async void EditTesting(CatTesting catTesting)
+	{
+		newCatTesting = catTesting;
+		ShowEditPopup = true;
+		bf.Name = newCatTesting.Name;
+		bf.CatId = catId;
+		bf.TestDate = newCatTesting.TestDate;
+		bf.TestResult = newCatTesting.TestResult;
+	}
+	void CloseAddPopup()
+	{
+		// Close the Popup
+		ShowAddPopup = false;
+	}
+	void CloseEditPopup()
+	{
+		// Close the Popup
+		ShowEditPopup = false;
+	}
+	async void SaveTestingAdd()
+	{
+		CatTesting vacc = new CatTesting();
+		vacc.Name = newCatTesting.Name;
+		vacc.TestDate = newCatTesting.TestDate;
+		vacc.TestResult = newCatTesting.TestResult;
+		vacc.CatId = catId;
+		bool adding = await CatService.AddTesting(vacc);
+		if (adding == true)
+		{
+			await App.Current.MainPage.DisplayAlert("Başarılı", "Test kaydı alındı!", "Ok");
+			testings.Add(vacc);
+			ShowEmptyPage = false;
+			await OnInitializedAsync();
+		}
+		else
+		{
+			await App.Current.MainPage.DisplayAlert("Hata", "Kayıt sırasında bir problem meydana geldi!", "Ok");
+			await OnInitializedAsync();
+		}
+	}
+	async void SaveTestingEdit()
+	{
+		bool update = await CatService.EditTesting(newCatTesting);
+		if (update == true)
+		{
+			await App.Current.MainPage.DisplayAlert("Başarılı", "Test kaydı güncellendi!", "Ok");
+			await OnInitializedAsync();
+		}
+		else
+		{
+			await App.Current.MainPage.DisplayAlert("Hata", "Güncelleme sırasında bir problem meydana geldi!", "Ok");
+			await OnInitializedAsync();
+		}
+	}
+	async void DeleteTesting(CatTesting catTesting)
+	{
+		bool answer = await App.Current.MainPage.DisplayAlert("", "Test kaydını silmek istediğinizden emin misiniz?", "Evet", "Hayır");
+		if (answer == true)
+		{
+			bool delete = await CatService.DeleteTesting(catTesting);
+			if (delete == true)
+			{
+				await App.Current.MainPage.DisplayAlert("Başarılı", "Test kaydı silindi! Güncel listeyi görmek için lütfen sayfayı yenileyiniz.", "Ok");
+				testings.Remove(catTesting);
+			}
+			else
+			{
+				await App.Current.MainPage.DisplayAlert("Hata", "Silme sırasında bir problem meydana geldi!", "Ok");
+				await OnInitializedAsync();
+			}
+		}
+	}
+}
